@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('form[data-ui-form]').forEach(form => form.addEventListener('submit', event => { event.preventDefault(); if (!form.checkValidity()) form.classList.add('was-validated'); })); });

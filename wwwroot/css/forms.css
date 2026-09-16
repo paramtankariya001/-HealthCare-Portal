@@ -1,0 +1,2 @@
+/* Form extension point for future MVC model validation. */
+.form-panel .form-control.is-invalid { border-color:#d66e66; }

@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HealthCare Portal</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/forms.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tables.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/responsive.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/HealthCare_Portal.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg portal-nav">
+            <div class="container-xl">
+                <a class="navbar-brand brand-lockup" href="/#top" aria-label="HealthCare Portal home">
+                    <span class="brand-mark"><i class="bi bi-plus-lg"></i></span>
+                    <span>HealthCare <strong>Portal</strong></span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Open navigation">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav mx-auto gap-lg-2">
+                        <li class="nav-item"><a class="nav-link active" href="/#top">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/#services">Services</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/#doctors">Doctors</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/#about">About us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/#contact">Contact</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/#patient-portal">Patient portal</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Portal">Staff portal</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Admin">Admin</a></li>
+                    </ul>
+                    <div class="d-flex align-items-center gap-3 nav-actions">
+                        <a class="sign-in-link" href="#login" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="bi bi-person-circle"></i> Sign in</a>
+                        <a class="btn btn-primary btn-sm px-3" href="#booking">Book appointment <i class="bi bi-arrow-up-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="portal-shell">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="portal-footer">
+        <div class="container-xl">
+            <div class="footer-top">
+                <div class="brand-lockup footer-brand"><span class="brand-mark"><i class="bi bi-plus-lg"></i></span><span>HealthCare <strong>Portal</strong></span></div>
+                <p>Thoughtful care, made simpler.</p>
+                <div class="footer-links"><a href="/#services">Services</a><a href="/#doctors">Doctors</a><a href="/#about">About us</a><a href="/#contact">Contact</a></div>
+            </div>
+            <div class="footer-bottom"><span>&copy; 2026 HealthCare Portal. UI demonstration.</span><span>Privacy &middot; Terms &middot; Accessibility</span></div>
+        </div>
+    </footer>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastArea" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content auth-modal">
+            <div class="modal-header border-0"><div><span class="eyebrow">Welcome back</span><h2 id="loginModalLabel">Sign in to your care</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+            <div class="modal-body pt-0"><div class="role-switch mb-4"><button class="active" type="button">Patient</button><button type="button">Doctor</button><button type="button">Staff</button></div><form class="demo-form"><label class="form-label" for="loginEmail">Email address</label><input class="form-control mb-3" id="loginEmail" type="email" placeholder="you@example.com" required /><label class="form-label" for="loginPassword">Password</label><div class="input-group mb-3"><input class="form-control" id="loginPassword" type="password" placeholder="Enter password" required /><button class="btn btn-outline-secondary password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button></div><div class="d-flex justify-content-between align-items-center mb-4"><label class="form-check small"><input class="form-check-input" type="checkbox" /> Remember me</label><a href="#forgot" class="small text-link" data-bs-toggle="modal" data-bs-target="#forgotModal" data-bs-dismiss="modal">Forgot password?</a></div><button class="btn btn-primary w-100" type="submit">Continue <i class="bi bi-arrow-right"></i></button></form><p class="text-center small text-muted mt-4 mb-0">New here? <a href="#register" class="text-link" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Create an account</a></p></div>
+        </div></div>
+    </div>
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content auth-modal"><div class="modal-header border-0"><div><span class="eyebrow">Patient registration</span><h2 id="registerModalLabel">Create your account</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body pt-0"><form class="demo-form"><div class="row g-3"><div class="col-md-6"><label class="form-label" for="registerName">Full name</label><input class="form-control" id="registerName" placeholder="Nisha Rao" required /></div><div class="col-md-6"><label class="form-label" for="registerMobile">Mobile number</label><input class="form-control" id="registerMobile" placeholder="+1 555 0100" required /></div><div class="col-12"><label class="form-label" for="registerEmail">Email address</label><input class="form-control" id="registerEmail" type="email" placeholder="you@example.com" required /></div><div class="col-md-6"><label class="form-label" for="registerGender">Gender</label><select class="form-select" id="registerGender"><option>Prefer not to say</option><option>Female</option><option>Male</option></select></div><div class="col-md-6"><label class="form-label" for="registerDob">Date of birth</label><input class="form-control" id="registerDob" type="date" required /></div><div class="col-md-6"><label class="form-label" for="registerPassword">Password</label><input class="form-control" id="registerPassword" type="password" placeholder="Create password" required /></div><div class="col-md-6"><label class="form-label" for="registerConfirm">Confirm password</label><input class="form-control" id="registerConfirm" type="password" placeholder="Repeat password" required /></div></div><label class="form-check small mt-3"><input class="form-check-input" type="checkbox" required /> I agree to the terms and privacy policy.</label><button class="btn btn-primary w-100 mt-4" type="submit">Create account <i class="bi bi-arrow-right"></i></button></form></div></div></div>
+    </div>
+    <div class="modal fade" id="forgotModal" tabindex="-1" aria-labelledby="forgotModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content auth-modal"><div class="modal-header border-0"><div><span class="eyebrow">Account recovery</span><h2 id="forgotModalLabel">Reset your password</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body pt-0"><p class="small text-muted">Enter the email connected to your account and we will show the next step in this demo.</p><form class="demo-form"><label class="form-label" for="forgotEmail">Email address</label><input class="form-control" id="forgotEmail" type="email" placeholder="you@example.com" required /><button class="btn btn-primary w-100 mt-4" type="submit">Send reset link <i class="bi bi-arrow-right"></i></button></form><button class="btn btn-link text-link w-100 mt-3" type="button" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal"><i class="bi bi-arrow-left"></i> Back to login</button></div></div></div>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/validation.js" asp-append-version="true"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script src="~/js/appointment.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

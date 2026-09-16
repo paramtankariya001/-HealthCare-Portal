@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('.slot:not(.disabled)').forEach(slot => slot.addEventListener('click', () => { document.querySelectorAll('.slot').forEach(item => item.classList.remove('active')); slot.classList.add('active'); })); });

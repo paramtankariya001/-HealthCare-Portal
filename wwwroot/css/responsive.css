@@ -1,0 +1,1 @@
+@media (max-width:767px) { .role-page .dashboard-sidebar { position:static; } .role-page .dashboard-nav { display:flex; flex-wrap:wrap; } .role-page .dashboard-nav a { flex:1 0 45%; } }

@@ -1,0 +1,2 @@
+/* Dashboard-specific styles are kept separate for future role modules. */
+.dashboard-page { background:#f4f8f6; min-height:calc(100vh - 78px); padding:70px 0; }

@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "Admin dashboard";
+}
+
+<section class="dashboard-page">
+    <div class="container-xl">
+        <div class="workspace-heading">
+            <div><span class="eyebrow">Administration</span><h2>Admin dashboard</h2></div>
+            <a class="btn btn-primary" href="/Admin/Patients"><i class="bi bi-people"></i> Manage users</a>
+        </div>
+        <div class="portal-stats admin-stats">
+            <div class="portal-stat mint"><i class="bi bi-people"></i><small>Total patients</small><strong>12,840</strong><span>+8.4% this month</span></div>
+            <div class="portal-stat peach"><i class="bi bi-heart-pulse"></i><small>Total doctors</small><strong>86</strong><span>5 new this month</span></div>
+            <div class="portal-stat lilac"><i class="bi bi-headset"></i><small>Receptionists</small><strong>34</strong><span>31 active</span></div>
+            <div class="portal-stat yellow"><i class="bi bi-calendar-check"></i><small>Today's appointments</small><strong>248</strong><span>82 completed</span></div>
+            <div class="portal-stat blue"><i class="bi bi-check2-circle"></i><small>Completed appointments</small><strong>1,904</strong><span>September</span></div>
+            <div class="portal-stat rose"><i class="bi bi-hourglass-split"></i><small>Pending appointments</small><strong>37</strong><span>Needs attention</span></div>
+            <div class="portal-stat mint"><i class="bi bi-graph-up-arrow"></i><small>Monthly revenue</small><strong>₹28.4L</strong><span>+14.8%</span></div>
+            <div class="portal-stat peach"><i class="bi bi-wallet2"></i><small>Pending payments</small><strong>₹4.8L</strong><span>42 invoices</span></div>
+        </div>
+        <div class="admin-chart-grid mt-3">
+            <div class="admin-panel chart-panel"><div class="panel-heading"><div><span class="eyebrow">Performance</span><h3>Monthly appointments</h3></div></div><canvas id="adminAppointmentsChart" height="210"></canvas></div>
+            <div class="admin-panel chart-panel"><div class="panel-heading"><div><span class="eyebrow">Finance</span><h3>Monthly revenue</h3></div></div><canvas id="adminRevenueChart" height="210"></canvas></div>
+        </div>
+        <div class="workspace-grid two-up">
+            <div class="staff-panel"><div class="panel-heading"><div><span class="eyebrow">Patient mix</span><h3>Department-wise patients</h3></div></div><div class="horizontal-bars"><div><span>Cardiology <b>3,240</b></span><i style="width:88%"></i></div><div><span>General medicine <b>2,810</b></span><i style="width:76%"></i></div><div><span>Neurology <b>1,940</b></span><i style="width:61%"></i></div><div><span>Orthopedics <b>1,520</b></span><i style="width:49%"></i></div></div></div>
+            <div class="staff-panel"><div class="panel-heading"><div><span class="eyebrow">Appointment status</span><h3>Today's flow</h3></div></div><div class="chart-wrap"><div class="donut-chart admin-donut"><strong>248</strong><small>today</small></div><div class="chart-legend"><span><i class="legend confirmed-color"></i>Confirmed <b>128</b></span><span><i class="legend completed-color"></i>Completed <b>82</b></span><span><i class="legend pending-color"></i>Pending <b>24</b></span></div></div></div>
+        </div>
+        <div class="staff-panel mt-3"><div class="panel-heading"><div><span class="eyebrow">Clinical output</span><h3>Doctor performance</h3></div></div><div class="performance-list"><div><span class="staff-avatar">SM</span><span><strong>Dr. Sarah Mitchell</strong><small>248 appointments · 238 completed · 186 patients</small></span><b>₹4.8L</b></div><div><span class="staff-avatar peach-avatar">MC</span><span><strong>Dr. Michael Chen</strong><small>224 appointments · 211 completed · 164 patients</small></span><b>₹3.9L</b></div></div></div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+        new Chart(document.getElementById('adminAppointmentsChart'), { type: 'line', data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'], datasets: [{ data: [182,204,196,232,218,260,244,284,248], borderColor: '#0c8f84', backgroundColor: 'rgba(12,143,132,.08)', fill: true, tension: .35 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#edf2f0' } } } } });
+        new Chart(document.getElementById('adminRevenueChart'), { type: 'bar', data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'], datasets: [{ data: [18,21,19,24,23,26,25,24,28.4], backgroundColor: '#a9ddd4', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#edf2f0' } } } } });
+    </script>
+}

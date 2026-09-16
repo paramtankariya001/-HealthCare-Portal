@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('[data-dashboard-action]').forEach(action => action.addEventListener('click', () => document.querySelector(action.dataset.dashboardAction)?.scrollIntoView({ behavior:'smooth' }))); });
