@@ -156,6 +156,7 @@ public class PatientController(
             else
             {
                 // The department is derived from the trusted doctor record, never from the browser.
+                ModelState.Remove(nameof(model.DepartmentId));
                 model.DepartmentId = docResult.Data.DepartmentId ?? 0;
             }
         }
