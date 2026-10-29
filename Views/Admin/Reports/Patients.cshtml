@@ -1,1 +1,97 @@
-@{ ViewData["Title"] = "Patient report"; } @await Html.PartialAsync("_AdminModulePage")
+@{
+    ViewData["Title"] = "Patient Demographics Report";
+    var patientData = ViewData["PatientData"] as Dictionary<string, object?>;
+    var fromDate = (ViewData["FromDate"] as DateTime?)?.ToString("yyyy-MM-dd");
+    var toDate = (ViewData["ToDate"] as DateTime?)?.ToString("yyyy-MM-dd");
+    int newPatients = patientData != null ? Convert.ToInt32(patientData["NewPatients"]) : 0;
+    int malePatients = patientData != null ? Convert.ToInt32(patientData["MalePatients"]) : 0;
+    int femalePatients = patientData != null ? Convert.ToInt32(patientData["FemalePatients"]) : 0;
+}
+
+<section class="dashboard-page admin-module-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="workspace-heading">
+            <div>
+                <span class="eyebrow">Demographics &amp; Registration</span>
+                <h2>Patient Summary Report</h2>
+                <p>New patient registrations, gender distribution, and intake volume.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/Admin/Reports?page=Appointments" class="btn btn-outline-secondary"><i class="bi bi-calendar-event"></i> Appointments</a>
+                <a href="/Admin/Reports?page=Revenue" class="btn btn-outline-secondary"><i class="bi bi-graph-up"></i> Revenue</a>
+                <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4 bg-light border-0">
+            <form method="get" action="/Admin/Reports" class="row g-3 align-items-end">
+                <input type="hidden" name="page" value="Patients" />
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">From Date</label>
+                    <input type="date" name="fromDate" value="@fromDate" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">To Date</label>
+                    <input type="date" name="toDate" value="@toDate" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Apply Date Filter</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="portal-stats admin-stats mb-4">
+            <div class="portal-stat mint">
+                <i class="bi bi-people"></i>
+                <small>New Patient Registrations</small>
+                <strong>@newPatients</strong>
+                <span>Intake in selected period</span>
+            </div>
+            <div class="portal-stat peach">
+                <i class="bi bi-gender-male"></i>
+                <small>Male Patients</small>
+                <strong>@malePatients</strong>
+                <span>@(newPatients > 0 ? $"{(malePatients * 100.0 / newPatients):F1}%" : "0%")</span>
+            </div>
+            <div class="portal-stat lilac">
+                <i class="bi bi-gender-female"></i>
+                <small>Female Patients</small>
+                <strong>@femalePatients</strong>
+                <span>@(newPatients > 0 ? $"{(femalePatients * 100.0 / newPatients):F1}%" : "0%")</span>
+            </div>
+        </div>
+
+        <div class="dash-panel">
+            <div class="dash-panel-head">
+                <div>
+                    <span class="eyebrow">Demographic Breakdown</span>
+                    <h3>Gender Analysis</h3>
+                </div>
+            </div>
+            <div class="table-shell mt-3">
+                <table class="staff-table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Gender</th>
+                            <th>Total Registered</th>
+                            <th>Proportion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Male</strong></td>
+                            <td>@malePatients</td>
+                            <td>@(newPatients > 0 ? $"{(malePatients * 100.0 / newPatients):F1}%" : "0%")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Female</strong></td>
+                            <td>@femalePatients</td>
+                            <td>@(newPatients > 0 ? $"{(femalePatients * 100.0 / newPatients):F1}%" : "0%")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

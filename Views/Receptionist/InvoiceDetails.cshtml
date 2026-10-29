@@ -1,1 +1,188 @@
-@{ ViewData["Title"] = "Invoice details"; } @await Html.PartialAsync("_FrontDeskPage")
+@model HealthCare_Portal.Models.Bill
+@{
+    ViewData["Title"] = $"Invoice - {Model.InvoiceNumber}";
+    var badgeClass = Model.PaymentStatus switch
+    {
+        "Paid" => "completed",
+        "Partially Paid" => "available",
+        _ => "pending"
+    };
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
+            <partial name="_Breadcrumb" />
+            <div class="d-flex gap-2">
+                <a href="/Receptionist/Billing" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Billing
+                </a>
+                <button type="button" class="btn btn-outline-primary" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Print Invoice
+                </button>
+                @if (Model.BalanceAmount > 0)
+                {
+                    <a href="/Receptionist/Payment?billId=@Model.BillId" class="btn btn-primary">
+                        <i class="bi bi-credit-card"></i> Collect Payment
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="card p-5 border-0 shadow-sm invoice-container bg-white">
+            <div class="row align-items-center border-bottom pb-4 mb-4">
+                <div class="col-sm-6">
+                    <h2 class="text-primary fw-bold mb-1"><i class="bi bi-hospital"></i> HealthCare Portal</h2>
+                    <p class="text-muted small mb-0">Multi-Speciality Healthcare Center &amp; Clinical Services<br />100 Medical Boulevard, Metro City<br />Phone: +91 (0) 80 4000 8888</p>
+                </div>
+                <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                    <h3 class="fw-bold mb-1">INVOICE</h3>
+                    <div class="text-muted small mb-2"># @Model.InvoiceNumber</div>
+                    <span class="status-badge @badgeClass fs-6">@Model.PaymentStatus</span>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-bold d-block mb-1">Billed To:</span>
+                    <h5 class="fw-bold mb-1">@Model.PatientName</h5>
+                    <p class="text-muted small mb-0">
+                        Patient Code: <strong>@Model.PatientCode</strong><br />
+                        Phone: @(string.IsNullOrWhiteSpace(Model.PatientPhone) ? "—" : Model.PatientPhone)<br />
+                        Email: @(string.IsNullOrWhiteSpace(Model.PatientEmail) ? "—" : Model.PatientEmail)<br />
+                        Address: @(string.IsNullOrWhiteSpace(Model.PatientAddress) ? "Metro City" : Model.PatientAddress)
+                    </p>
+                </div>
+                <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                    <span class="text-muted small text-uppercase fw-bold d-block mb-1">Invoice Info:</span>
+                    <p class="text-muted small mb-0">
+                        Date: <strong>@Model.BillDate.ToString("dd MMMM yyyy")</strong><br />
+                        Time: <strong>@Model.BillDate.ToString("hh:mm tt")</strong><br />
+                        Doctor: <strong>@(string.IsNullOrWhiteSpace(Model.DoctorName) ? "General Hospital" : Model.DoctorName)</strong><br />
+                        Department: <strong>@(string.IsNullOrWhiteSpace(Model.DepartmentName) ? "General Medicine" : Model.DepartmentName)</strong>
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 45%;">Service / Item Description</th>
+                            <th class="text-center" style="width: 15%;">Quantity</th>
+                            <th class="text-end" style="width: 15%;">Unit Price</th>
+                            <th class="text-end" style="width: 20%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            int idx = 1;
+                            foreach (var it in Model.Items)
+                            {
+                                <tr>
+                                    <td>@(idx++)</td>
+                                    <td>
+                                        <strong>@it.ServiceName</strong>
+                                        @if (!string.IsNullOrWhiteSpace(it.Description))
+                                        {
+                                            <div class="small text-muted">@it.Description</div>
+                                        }
+                                    </td>
+                                    <td class="text-center">@it.Quantity</td>
+                                    <td class="text-end">₹@it.UnitPrice.ToString("N2")</td>
+                                    <td class="text-end fw-bold">₹@it.TotalPrice.ToString("N2")</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row justify-content-end mb-4">
+                <div class="col-md-5">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td>Subtotal:</td>
+                            <td class="text-end fw-bold">₹@Model.Subtotal.ToString("N2")</td>
+                        </tr>
+                        @if (Model.Discount > 0)
+                        {
+                            <tr class="text-success">
+                                <td>Discount:</td>
+                                <td class="text-end">- ₹@Model.Discount.ToString("N2")</td>
+                            </tr>
+                        }
+                        @if (Model.Tax > 0)
+                        {
+                            <tr>
+                                <td>Taxes &amp; Levies:</td>
+                                <td class="text-end">+ ₹@Model.Tax.ToString("N2")</td>
+                            </tr>
+                        }
+                        <tr class="border-top fs-5">
+                            <td><strong>Grand Total:</strong></td>
+                            <td class="text-end text-primary"><strong>₹@Model.GrandTotal.ToString("N2")</strong></td>
+                        </tr>
+                        <tr class="text-success">
+                            <td>Amount Paid:</td>
+                            <td class="text-end fw-bold">₹@Model.PaidAmount.ToString("N2")</td>
+                        </tr>
+                        <tr class="border-top fs-5">
+                            <td><strong>Outstanding Balance:</strong></td>
+                            <td class="text-end @(Model.BalanceAmount > 0 ? "text-danger" : "text-success")">
+                                <strong>₹@Model.BalanceAmount.ToString("N2")</strong>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            @if (Model.Payments != null && Model.Payments.Any())
+            {
+                <div class="border-top pt-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-clock-history"></i> Payment History</h5>
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Transaction Code</th>
+                                <th>Date</th>
+                                <th>Method</th>
+                                <th>Reference</th>
+                                <th class="text-end">Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Payments)
+                            {
+                                <tr>
+                                    <td><code>@p.TransactionCode</code></td>
+                                    <td>@p.PaymentDate.ToString("dd MMM yyyy, hh:mm tt")</td>
+                                    <td>@p.PaymentMethod</td>
+                                    <td>@(string.IsNullOrWhiteSpace(p.ReferenceNumber) ? "—" : p.ReferenceNumber)</td>
+                                    <td class="text-end fw-bold text-success">₹@p.Amount.ToString("N2")</td>
+                                    <td><span class="badge bg-success">@p.PaymentStatus</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <div class="border-top pt-3 text-center text-muted small">
+                <p class="mb-1">Thank you for choosing HealthCare Portal. For any billing queries, please contact billing@healthcareportal.com.</p>
+                <p class="mb-0">This is a computer-generated document, valid without signature.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    @@media print {
+        .d-print-none, .dashboard-sidebar, .top-nav, footer { display: none !important; }
+        .invoice-container { box-shadow: none !important; padding: 0 !important; }
+        body { background: #fff !important; }
+    }
+</style>

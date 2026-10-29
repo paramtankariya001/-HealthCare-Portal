@@ -1,1 +1,84 @@
-@{ ViewData["Title"] = "Find a doctor"; } @await Html.PartialAsync("_PatientPage")
+@using HealthCare_Portal.Models
+@{
+    ViewData["Title"] = "Find a doctor";
+    var doctors = ViewData["Doctors"] as IReadOnlyList<Doctor> ?? Array.Empty<Doctor>();
+    var departments = ViewData["Departments"] as IReadOnlyList<Department> ?? Array.Empty<Department>();
+    var search = ViewData["Search"] as string;
+    var selectedDeptId = ViewData["DepartmentId"] as int?;
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Patient portal</span>
+                <h2>Find a doctor</h2>
+                <p>Browse qualified specialists and find the right healthcare provider for you.</p>
+            </div>
+            <a class="btn btn-primary" href="/Patient/BookAppointment"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+        </div>
+
+        <div class="patient-dashboard">
+            <partial name="_Sidebar" />
+            <div class="dashboard-main">
+                <form method="get" action="/Patient/FindDoctor" class="filter-bar mb-4">
+                    <input class="form-control" name="search" value="@search" placeholder="Search doctor name or specialization" />
+                    <select class="form-select" name="departmentId">
+                        <option value="">All departments</option>
+                        @foreach (var dept in departments)
+                        {
+                            <option value="@dept.DepartmentId" selected="@(selectedDeptId == dept.DepartmentId)">@dept.DepartmentName</option>
+                        }
+                    </select>
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+                    @if (!string.IsNullOrWhiteSpace(search) || selectedDeptId.HasValue)
+                    {
+                        <a class="btn btn-link text-link" href="/Patient/FindDoctor">Reset</a>
+                    }
+                </form>
+
+                @if (doctors.Count == 0)
+                {
+                    <div class="dash-panel p-4 text-center">
+                        <i class="bi bi-search display-6 text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No active doctors found matching your search criteria.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="doctor-grid">
+                        @foreach (var doc in doctors)
+                        {
+                            var initials = (!string.IsNullOrWhiteSpace(doc.FirstName) ? doc.FirstName[..1] : "D") + (!string.IsNullOrWhiteSpace(doc.LastName) ? doc.LastName[..1] : "R");
+                            <article class="doctor-card">
+                                <div class="p-3 border-bottom bg-light d-flex align-items-center gap-3">
+                                    <span class="staff-avatar" style="width:48px;height:48px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;">@initials</span>
+                                    <div>
+                                        <h3 class="mb-0" style="font-size:1.05rem;">Dr. @doc.FirstName @doc.LastName</h3>
+                                        <small class="text-muted">@(doc.DepartmentName ?? "General Medicine") &middot; @(doc.SpecializationName ?? "Specialist")</small>
+                                    </div>
+                                </div>
+                                <div class="doctor-info p-3">
+                                    <div>
+                                        <p class="mb-1 text-muted"><i class="bi bi-mortarboard me-1"></i> @(string.IsNullOrWhiteSpace(doc.Qualification) ? "MBBS" : doc.Qualification)</p>
+                                        <p class="mb-0 text-muted"><i class="bi bi-briefcase me-1"></i> @doc.ExperienceYears years experience</p>
+                                    </div>
+                                    <span class="rating"><i class="bi bi-circle-fill"></i> Active</span>
+                                </div>
+                                <div class="doctor-meta px-3 py-2 border-top">
+                                    <span>Fee: <strong>₹@doc.ConsultationFee.ToString("N0")</strong></span>
+                                    <span class="available"><i class="bi bi-circle-fill"></i> Available</span>
+                                </div>
+                                <div class="p-3 pt-2 d-flex gap-2">
+                                    <a href="/Patient/BookAppointment?doctorId=@doc.DoctorId" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-calendar-check me-1"></i> Book</a>
+                                    <a href="/Patient/DoctorDetails/@doc.DoctorId" class="btn btn-outline-secondary btn-sm"><i class="bi bi-info-circle"></i> Details</a>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

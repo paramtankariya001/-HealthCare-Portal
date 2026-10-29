@@ -1,1 +1,197 @@
-@{ ViewData["Title"] = "Patient details"; } @await Html.PartialAsync("_DoctorPage")
+@model HealthCare_Portal.Models.Patient
+@{
+    ViewData["Title"] = $"Patient {Model.FirstName} {Model.LastName}";
+    var consultations = ViewData["Consultations"] as IReadOnlyList<HealthCare_Portal.Models.Consultation> ?? Array.Empty<HealthCare_Portal.Models.Consultation>();
+    var prescriptions = ViewData["Prescriptions"] as IReadOnlyList<HealthCare_Portal.Models.Prescription> ?? Array.Empty<HealthCare_Portal.Models.Prescription>();
+    var tests = ViewData["MedicalTests"] as IReadOnlyList<HealthCare_Portal.Models.MedicalTest> ?? Array.Empty<HealthCare_Portal.Models.MedicalTest>();
+    var initials = (!string.IsNullOrWhiteSpace(Model.FirstName) ? Model.FirstName[..1] : "P") + (!string.IsNullOrWhiteSpace(Model.LastName) ? Model.LastName[..1] : "T");
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Medical record</span>
+                <h2>@Model.FirstName @Model.LastName</h2>
+                <p>Patient ID: @Model.PatientCode &middot; Phone: @Model.Phone</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/Doctor/Appointments"><i class="bi bi-arrow-left"></i> Appointments</a>
+        </div>
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a class="active" href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="dash-panel p-4 mb-4">
+                    <div class="d-flex align-items-center gap-3 pb-3 border-bottom mb-3">
+                        <span class="patient-avatar" style="width:56px;height:56px;font-size:1.3rem;">@initials</span>
+                        <div>
+                            <h3 class="mb-0">@Model.FirstName @Model.LastName</h3>
+                            <small class="text-muted">Code: @Model.PatientCode &middot; Gender: @Model.Gender &middot; Born: @Model.DateOfBirth.ToString("dd MMM yyyy")</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Blood Group</small>
+                                <strong>@(string.IsNullOrWhiteSpace(Model.BloodGroup) ? "Not recorded" : Model.BloodGroup)</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Phone Number</small>
+                                <strong>@Model.Phone</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Email</small>
+                                <strong>@(string.IsNullOrWhiteSpace(Model.Email) ? "-" : Model.Email)</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Emergency Contact</small>
+                                <strong>@(string.IsNullOrWhiteSpace(Model.EmergencyContactName) ? "-" : Model.EmergencyContactName)</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <small class="text-muted d-block fw-bold mb-1">Known Allergies</small>
+                            <p class="p-3 bg-light rounded text-secondary mb-0">@(string.IsNullOrWhiteSpace(Model.Allergies) ? "None reported" : Model.Allergies)</p>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted d-block fw-bold mb-1">Chronic / Prior Medical History</small>
+                            <p class="p-3 bg-light rounded text-secondary mb-0">@(string.IsNullOrWhiteSpace(Model.MedicalHistory) ? "None recorded" : Model.MedicalHistory)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Past Consultations -->
+                <div class="dash-panel p-4 mb-4">
+                    <h4 class="h6 text-muted text-uppercase fw-bold mb-3">Consultation Records (@consultations.Count)</h4>
+                    @if (consultations.Count == 0)
+                    {
+                        <p class="text-muted mb-0">No past consultations found for this patient.</p>
+                    }
+                    else
+                    {
+                        <div class="table-shell">
+                            <table class="staff-table admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Diagnosis</th>
+                                        <th>Symptoms</th>
+                                        <th>Notes</th>
+                                        <th>Follow-up</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var c in consultations)
+                                    {
+                                        <tr>
+                                            <td>@c.ConsultationDate.ToString("dd MMM yyyy")</td>
+                                            <td><strong>@(c.Diagnosis ?? "-")</strong></td>
+                                            <td>@(c.Symptoms ?? "-")</td>
+                                            <td>@(c.DoctorNotes ?? "-")</td>
+                                            <td>@(c.FollowUpDate.HasValue ? c.FollowUpDate.Value.ToString("dd MMM yyyy") : "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <!-- Past Prescriptions -->
+                <div class="dash-panel p-4 mb-4">
+                    <h4 class="h6 text-muted text-uppercase fw-bold mb-3">Prescription History (@prescriptions.Count)</h4>
+                    @if (prescriptions.Count == 0)
+                    {
+                        <p class="text-muted mb-0">No past prescriptions recorded.</p>
+                    }
+                    else
+                    {
+                        <div class="table-shell">
+                            <table class="staff-table admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rx Code</th>
+                                        <th>Date</th>
+                                        <th>Diagnosis</th>
+                                        <th>Instructions</th>
+                                        <th>Follow-up</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rx in prescriptions)
+                                    {
+                                        <tr>
+                                            <td><strong>@rx.PrescriptionCode</strong></td>
+                                            <td>@rx.PrescriptionDate.ToString("dd MMM yyyy")</td>
+                                            <td>@(rx.Diagnosis ?? "General")</td>
+                                            <td>@(rx.Instructions ?? "-")</td>
+                                            <td>@(rx.FollowUpDate.HasValue ? rx.FollowUpDate.Value.ToString("dd MMM yyyy") : "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <!-- Medical Tests -->
+                <div class="dash-panel p-4">
+                    <h4 class="h6 text-muted text-uppercase fw-bold mb-3">Ordered Diagnostic Tests (@tests.Count)</h4>
+                    @if (tests.Count == 0)
+                    {
+                        <p class="text-muted mb-0">No diagnostic tests requested.</p>
+                    }
+                    else
+                    {
+                        <div class="table-shell">
+                            <table class="staff-table admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Test Name</th>
+                                        <th>Date</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var t in tests)
+                                    {
+                                        <tr>
+                                            <td><strong>@t.TestCode</strong></td>
+                                            <td>@t.TestName</td>
+                                            <td>@t.TestDate.ToString("dd MMM yyyy")</td>
+                                            <td><span class="badge @(t.Priority == "Urgent" ? "bg-danger" : "bg-secondary")">@t.Priority</span></td>
+                                            <td><span class="status-badge @t.TestStatus.ToLowerInvariant().Replace(" ", "-")">@t.TestStatus</span></td>
+                                            <td><a class="table-action" href="/Doctor/TestDetails/@t.MedicalTestId">View</a></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

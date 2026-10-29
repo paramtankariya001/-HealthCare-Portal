@@ -1,1 +1,205 @@
-@{ ViewData["Title"] = "Doctor dashboard"; } @await Html.PartialAsync("_DoctorPage")
+@using HealthCare_Portal.Models
+@{
+    ViewData["Title"] = "Doctor dashboard";
+    var doctor = ViewData["Doctor"] as Doctor;
+    var appointments = ViewData["Appointments"] as IReadOnlyList<Appointment> ?? Array.Empty<Appointment>();
+    var stats = ViewData["Stats"] as Dictionary<string, int> ?? new Dictionary<string, int>();
+
+    var todayAppts = appointments.Where(a => a.AppointmentDate.Date == DateTime.Today).ToList();
+    var pendingCount = appointments.Count(a => a.AppointmentStatus == "Pending" || a.AppointmentStatus == "Confirmed" || a.AppointmentStatus == "Checked-In");
+    var nextAppt = todayAppts.FirstOrDefault(a => a.AppointmentStatus != "Cancelled" && a.AppointmentStatus != "Completed");
+    var docName = doctor != null ? $"Dr. {doctor.FirstName} {doctor.LastName}" : "Doctor";
+    var initials = doctor != null ? (!string.IsNullOrWhiteSpace(doctor.FirstName) ? doctor.FirstName[..1] : "D") + (!string.IsNullOrWhiteSpace(doctor.LastName) ? doctor.LastName[..1] : "R") : "DR";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Doctor portal</span>
+                <h2>Doctor dashboard</h2>
+                <p>@docName <span class="topbar-dot"></span> @(doctor?.DepartmentName ?? "Medicine") <span class="topbar-dot"></span> Today, @DateTime.Today.ToString("dd MMMM yyyy")</p>
+            </div>
+            <a class="btn btn-primary" href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> View appointments</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <div class="patient-mini">
+                    <span class="patient-avatar">@initials</span>
+                    <div>
+                        <strong>@docName</strong>
+                        <small>@(doctor?.SpecializationName ?? "Specialist")</small>
+                    </div>
+                </div>
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a class="active" href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="dashboard-stats">
+                    <div class="dash-stat">
+                        <span class="dash-icon mint"><i class="bi bi-calendar-check"></i></span>
+                        <div>
+                            <small>Today's appointments</small>
+                            <strong>@(stats.GetValueOrDefault("TodayAppointments", todayAppts.Count).ToString("D2"))</strong>
+                            <a href="/Doctor/Appointments">View schedule</a>
+                        </div>
+                    </div>
+                    <div class="dash-stat">
+                        <span class="dash-icon peach"><i class="bi bi-hourglass-split"></i></span>
+                        <div>
+                            <small>Pending queue</small>
+                            <strong>@pendingCount.ToString("D2")</strong>
+                            <a href="/Doctor/Appointments">Review queue</a>
+                        </div>
+                    </div>
+                    <div class="dash-stat">
+                        <span class="dash-icon lilac"><i class="bi bi-people"></i></span>
+                        <div>
+                            <small>Completed visits</small>
+                            <strong>@(stats.GetValueOrDefault("CompletedAppointments", appointments.Count(a => a.AppointmentStatus == "Completed")).ToString("D2"))</strong>
+                            <a href="/Doctor/Appointments">History</a>
+                        </div>
+                    </div>
+                    <div class="dash-stat">
+                        <span class="dash-icon yellow"><i class="bi bi-check2-circle"></i></span>
+                        <div>
+                            <small>Total assigned</small>
+                            <strong>@appointments.Count.ToString("D2")</strong>
+                            <a href="/Doctor/Appointments">All records</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-columns">
+                    <div class="dash-panel">
+                        <div class="dash-panel-head">
+                            <div>
+                                <span class="eyebrow">Next consultation</span>
+                                <h3>@(nextAppt != null ? nextAppt.PatientName : "No pending patients")</h3>
+                            </div>
+                            @if (nextAppt != null)
+                            {
+                                <span class="status-badge confirmed">@nextAppt.AppointmentStatus</span>
+                            }
+                        </div>
+                        @if (nextAppt != null)
+                        {
+                            <div class="next-appointment">
+                                <div class="appointment-date">
+                                    <strong>@DateTime.Today.Add(nextAppt.StartTime).ToString("hh")</strong>
+                                    <small>@DateTime.Today.Add(nextAppt.StartTime).ToString("tt")<br />@nextAppt.AppointmentDate.ToString("dd MMM")</small>
+                                </div>
+                                <div class="appointment-details">
+                                    <strong>@(string.IsNullOrWhiteSpace(nextAppt.ReasonForVisit) ? "Consultation" : nextAppt.ReasonForVisit)</strong>
+                                    <span><i class="bi bi-person"></i> @nextAppt.PatientName (@nextAppt.PatientCode)</span>
+                                    <span><i class="bi bi-clock"></i> @DateTime.Today.Add(nextAppt.StartTime).ToString("hh:mm tt") - @DateTime.Today.Add(nextAppt.EndTime).ToString("hh:mm tt")</span>
+                                </div>
+                            </div>
+                            <div class="appointment-actions">
+                                <a class="btn btn-primary" href="/Doctor/Consultation?appointmentId=@nextAppt.AppointmentId">Start consultation</a>
+                                <a class="btn btn-light" href="/Doctor/AppointmentDetails/@nextAppt.AppointmentId">View details</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="p-4 text-center text-muted">
+                                <i class="bi bi-calendar2-check display-6 d-block mb-2 text-muted"></i>
+                                All appointments for today are completed or none scheduled.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="dash-panel">
+                        <div class="dash-panel-head">
+                            <div>
+                                <span class="eyebrow">Quick navigation</span>
+                                <h3>Actions</h3>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <a href="/Doctor/Appointments">
+                                <i class="bi bi-calendar2-week mint-text"></i>
+                                <span>Appointments<small>Manage today's schedule</small></span>
+                            </a>
+                            <a href="/Doctor/PrescriptionHistory">
+                                <i class="bi bi-capsule peach-text"></i>
+                                <span>Prescriptions<small>View issued prescriptions</small></span>
+                            </a>
+                            <a href="/Doctor/MedicalTests">
+                                <i class="bi bi-eyedropper lilac-text"></i>
+                                <span>Medical tests<small>Diagnostics and lab requests</small></span>
+                            </a>
+                            <a href="/Doctor/Profile">
+                                <i class="bi bi-person-vcard yellow-text"></i>
+                                <span>Doctor profile<small>View professional details</small></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-panel lower-dash mt-4">
+                    <div class="dash-panel-head">
+                        <div>
+                            <span class="eyebrow">Patient queue</span>
+                            <h3>Today's appointments (@todayAppts.Count)</h3>
+                        </div>
+                        <a class="text-link" href="/Doctor/Appointments">See all</a>
+                    </div>
+                    <div class="table-shell mt-2">
+                        <table class="staff-table admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Patient</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (todayAppts.Count == 0)
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">No appointments scheduled for today.</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var appt in todayAppts)
+                                    {
+                                        <tr>
+                                            <td><strong>@appt.AppointmentCode</strong></td>
+                                            <td>@appt.PatientName</td>
+                                            <td>@DateTime.Today.Add(appt.StartTime).ToString("hh:mm tt")</td>
+                                            <td><span class="status-badge @appt.AppointmentStatus.ToLowerInvariant().Replace(" ", "-")">@appt.AppointmentStatus</span></td>
+                                            <td>
+                                                <a class="table-action" href="/Doctor/Consultation?appointmentId=@appt.AppointmentId">Consult</a>
+                                                <a class="table-action" href="/Doctor/AppointmentDetails/@appt.AppointmentId">Details</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

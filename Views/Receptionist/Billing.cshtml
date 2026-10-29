@@ -1,1 +1,157 @@
-@{ ViewData["Title"] = "Receptionist billing"; } @await Html.PartialAsync("_ReceptionistPage")
+@model IEnumerable<HealthCare_Portal.Models.Bill>
+@{
+    ViewData["Title"] = "Billing & Invoices";
+    var totalBilled = ViewData["TotalBilled"] as decimal? ?? 0;
+    var totalPaid = ViewData["TotalPaid"] as decimal? ?? 0;
+    var totalOutstanding = ViewData["TotalOutstanding"] as decimal? ?? 0;
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Front Desk Operations</span>
+                <h2>Billing &amp; Invoices</h2>
+                <p>Manage patient bills, cash desk, and payment reconciliation.</p>
+            </div>
+            <div class="action-group">
+                <a class="btn btn-outline-secondary" href="/Receptionist/Payments"><i class="bi bi-cash-stack"></i> All Payments</a>
+                <a class="btn btn-primary" href="/Receptionist/CreateBill"><i class="bi bi-receipt"></i> Generate New Bill</a>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="dashboard-stats mb-4">
+            <div class="dash-stat">
+                <span class="dash-icon mint"><i class="bi bi-receipt"></i></span>
+                <div>
+                    <small>Total Billed Amount</small>
+                    <strong>₹@totalBilled.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="dash-stat">
+                <span class="dash-icon lilac"><i class="bi bi-check2-circle"></i></span>
+                <div>
+                    <small>Total Collected</small>
+                    <strong>₹@totalPaid.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="dash-stat">
+                <span class="dash-icon yellow"><i class="bi bi-hourglass-split"></i></span>
+                <div>
+                    <small>Outstanding Balance</small>
+                    <strong>₹@totalOutstanding.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="dash-stat">
+                <span class="dash-icon peach"><i class="bi bi-file-earmark-text"></i></span>
+                <div>
+                    <small>Total Invoices</small>
+                    <strong>@(Model?.Count() ?? 0)</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-panel">
+            <div class="dash-panel-head">
+                <div>
+                    <span class="eyebrow">Financial Records</span>
+                    <h3>All Patient Invoices</h3>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-shell mt-3">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Patient</th>
+                                <th>Doctor / Dept</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var bill in Model)
+                            {
+                                var badgeClass = bill.PaymentStatus switch
+                                {
+                                    "Paid" => "completed",
+                                    "Partially Paid" => "available",
+                                    _ => "pending"
+                                };
+
+                                <tr>
+                                    <td><strong>@bill.InvoiceNumber</strong></td>
+                                    <td>
+                                        <span class="table-person">
+                                            <strong>@bill.PatientName</strong>
+                                            <small class="text-muted">@bill.PatientCode</small>
+                                        </span>
+                                    </td>
+                                    <td>@(string.IsNullOrWhiteSpace(bill.DoctorName) ? "General Hospital Service" : bill.DoctorName)</td>
+                                    <td>@bill.BillDate.ToString("dd MMM yyyy, hh:mm tt")</td>
+                                    <td><strong>₹@bill.GrandTotal.ToString("N2")</strong></td>
+                                    <td>₹@bill.PaidAmount.ToString("N2")</td>
+                                    <td>
+                                        @if (bill.BalanceAmount > 0)
+                                        {
+                                            <span class="text-danger fw-bold">₹@bill.BalanceAmount.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success">₹0.00</span>
+                                        }
+                                    </td>
+                                    <td><span class="status-badge @badgeClass">@bill.PaymentStatus</span></td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="/Receptionist/InvoiceDetails?id=@bill.BillId" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            @if (bill.BalanceAmount > 0)
+                                            {
+                                                <a href="/Receptionist/Payment?billId=@bill.BillId" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-credit-card"></i> Pay
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-receipt fs-1 d-block mb-3"></i>
+                    <h5>No billing records found</h5>
+                    <p>Click "Generate New Bill" to record the first patient charge.</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>

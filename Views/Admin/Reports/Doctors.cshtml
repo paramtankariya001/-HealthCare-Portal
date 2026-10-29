@@ -1,1 +1,90 @@
-@{ ViewData["Title"] = "Doctor report"; } @await Html.PartialAsync("_AdminModulePage")
+@{
+    ViewData["Title"] = "Doctor Performance Report";
+    var reportData = ViewData["ReportData"] as IReadOnlyList<Dictionary<string, object?>> ?? Array.Empty<Dictionary<string, object?>>();
+    var fromDate = (ViewData["FromDate"] as DateTime?)?.ToString("yyyy-MM-dd");
+    var toDate = (ViewData["ToDate"] as DateTime?)?.ToString("yyyy-MM-dd");
+}
+
+<section class="dashboard-page admin-module-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="workspace-heading">
+            <div>
+                <span class="eyebrow">Clinical Analytics</span>
+                <h2>Doctor Performance &amp; Consultations</h2>
+                <p>Appointments, consultation completion rate, and revenue contribution per physician.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/Admin/Reports?page=Appointments" class="btn btn-outline-secondary"><i class="bi bi-calendar-event"></i> Appointments</a>
+                <a href="/Admin/Reports?page=Revenue" class="btn btn-outline-secondary"><i class="bi bi-graph-up"></i> Revenue</a>
+                <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4 bg-light border-0">
+            <form method="get" action="/Admin/Reports" class="row g-3 align-items-end">
+                <input type="hidden" name="page" value="Doctors" />
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">From Date</label>
+                    <input type="date" name="fromDate" value="@fromDate" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">To Date</label>
+                    <input type="date" name="toDate" value="@toDate" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Apply Date Filter</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-shell mt-3">
+            <table class="staff-table admin-table">
+                <thead>
+                    <tr>
+                        <th>Doctor Code</th>
+                        <th>Doctor Name</th>
+                        <th>Assigned Appointments</th>
+                        <th>Completed Consultations</th>
+                        <th>Completion Rate</th>
+                        <th>Consultation Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (reportData.Any())
+                    {
+                        foreach (var r in reportData)
+                        {
+                            var total = Convert.ToInt32(r["TotalAppointments"]);
+                            var completed = Convert.ToInt32(r["CompletedAppointments"]);
+                            var rev = Convert.ToDecimal(r["ConsultationRevenue"]);
+                            var rate = total > 0 ? (completed * 100.0 / total) : 0;
+
+                            <tr>
+                                <td><strong>@r["DoctorCode"]</strong></td>
+                                <td>Dr. @r["FirstName"] @r["LastName"]</td>
+                                <td>@total</td>
+                                <td><strong>@completed</strong></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar bg-success" style="width: @rate%"></div>
+                                        </div>
+                                        <small class="fw-bold">@rate.ToString("F0")%</small>
+                                    </div>
+                                </td>
+                                <td><strong class="text-primary">₹@rev.ToString("N2")</strong></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No doctor performance data available.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

@@ -1,1 +1,142 @@
-@{ ViewData["Title"] = "Medical tests"; } @await Html.PartialAsync("_DoctorPage")
+@model IReadOnlyList<HealthCare_Portal.Models.MedicalTest>
+@{
+    ViewData["Title"] = "Diagnostic & medical tests";
+    var appt = ViewData["Appointment"] as HealthCare_Portal.Models.Appointment;
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Diagnostic tests</span>
+                <h2>Medical test requests</h2>
+                <p>Order and review laboratory and diagnostic test requests for patients.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Select appointment</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a class="active" href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                @if (appt != null)
+                {
+                    <div class="dash-panel p-4 mb-4">
+                        <div class="panel-heading mb-3">
+                            <div>
+                                <span class="eyebrow">Request test</span>
+                                <h3>Order test for @appt.PatientName (@appt.PatientCode)</h3>
+                            </div>
+                        </div>
+
+                        <form method="post" action="/Doctor/RequestMedicalTest">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="appointmentId" value="@appt.AppointmentId" />
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-5">
+                                    <label class="form-label">Test Name *</label>
+                                    <input name="testName" class="form-control" placeholder="e.g. Complete Blood Count (CBC), Lipid Profile, Chest X-Ray" required />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Priority</label>
+                                    <select name="priority" class="form-select">
+                                        <option value="Normal">Normal</option>
+                                        <option value="Urgent">Urgent</option>
+                                        <option value="Routine">Routine</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Target Date</label>
+                                    <input name="testDate" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Special Clinical Instructions</label>
+                                    <input name="instructions" class="form-control" placeholder="e.g. 10 hours overnight fasting required, postprandial" />
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2">
+                                <a class="btn btn-link text-link" href="/Doctor/AppointmentDetails/@appt.AppointmentId">Back to appointment</a>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-send me-1"></i> Submit Test Request
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                }
+
+                <div class="dash-panel p-4">
+                    <h3 class="h5 mb-3">Requested Tests History</h3>
+                    <div class="table-shell">
+                        <table class="staff-table admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Patient</th>
+                                    <th>Test Name</th>
+                                    <th>Date</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model == null || Model.Count == 0)
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">No medical test requests found.</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var test in Model)
+                                    {
+                                        var statusClass = test.TestStatus.ToLowerInvariant().Replace(" ", "-");
+                                        <tr>
+                                            <td><strong>@test.TestCode</strong></td>
+                                            <td>@test.PatientName</td>
+                                            <td>@test.TestName</td>
+                                            <td>@test.TestDate.ToString("dd MMM yyyy")</td>
+                                            <td>
+                                                <span class="badge @(test.Priority == "Urgent" ? "bg-danger" : "bg-secondary")">@test.Priority</span>
+                                            </td>
+                                            <td><span class="status-badge @statusClass">@test.TestStatus</span></td>
+                                            <td>
+                                                <a class="table-action" href="/Doctor/TestDetails/@test.MedicalTestId">View</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

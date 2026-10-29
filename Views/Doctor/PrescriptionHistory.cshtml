@@ -1,1 +1,92 @@
-@{ ViewData["Title"] = "Prescription history"; } @await Html.PartialAsync("_DoctorPage")
+@model IReadOnlyList<HealthCare_Portal.Models.Prescription>
+@{
+    ViewData["Title"] = "Prescription history";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Doctor portal</span>
+                <h2>Prescriptions</h2>
+                <p>Digital prescriptions issued to patients.</p>
+            </div>
+            <a class="btn btn-primary" href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Select appointment</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a class="active" href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="table-shell">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Rx Code</th>
+                                <th>Patient</th>
+                                <th>Date</th>
+                                <th>Diagnosis</th>
+                                <th>Follow-up</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model == null || Model.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">No prescriptions issued yet.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var rx in Model)
+                                {
+                                    <tr>
+                                        <td><strong>@rx.PrescriptionCode</strong></td>
+                                        <td>
+                                            <strong>@rx.PatientName</strong>
+                                            @if (!string.IsNullOrWhiteSpace(rx.PatientCode))
+                                            {
+                                                <small class="text-muted d-block">@rx.PatientCode</small>
+                                            }
+                                        </td>
+                                        <td>@rx.PrescriptionDate.ToString("dd MMM yyyy")</td>
+                                        <td>@(string.IsNullOrWhiteSpace(rx.Diagnosis) ? "General" : rx.Diagnosis)</td>
+                                        <td>@(rx.FollowUpDate.HasValue ? rx.FollowUpDate.Value.ToString("dd MMM yyyy") : "-")</td>
+                                        <td>
+                                            <a class="table-action" href="/Doctor/PatientDetails/@rx.PatientId">Patient records</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model != null && Model.Count > 0)
+                {
+                    <div class="table-footer mt-2">
+                        <span>Showing @Model.Count record(s)</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

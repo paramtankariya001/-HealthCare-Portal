@@ -1,1 +1,127 @@
-@{ ViewData["Title"] = "Appointment details"; } @await Html.PartialAsync("_ClinicalPage")
+@model HealthCare_Portal.Models.Appointment
+@{
+    ViewData["Title"] = $"Appointment {Model.AppointmentCode}";
+    var consultation = ViewData["Consultation"] as HealthCare_Portal.Models.Consultation;
+    var statusClass = Model.AppointmentStatus.ToLowerInvariant().Replace(" ", "-");
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Appointment details</span>
+                <h2>@Model.AppointmentCode</h2>
+                <p>Patient: @Model.PatientName (@Model.PatientCode) &middot; @Model.AppointmentDate.ToString("dd MMM yyyy")</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="/Doctor/Appointments"><i class="bi bi-arrow-left"></i> Appointments</a>
+                @if (Model.AppointmentStatus != "Cancelled")
+                {
+                    <a class="btn btn-primary" href="/Doctor/Consultation?appointmentId=@Model.AppointmentId"><i class="bi bi-journal-plus"></i> @(consultation != null ? "View / Edit Consultation" : "Start Consultation")</a>
+                    <a class="btn btn-success" href="/Doctor/CreatePrescription?appointmentId=@Model.AppointmentId"><i class="bi bi-capsule"></i> Prescription</a>
+                    <a class="btn btn-outline-info" href="/Doctor/MedicalTests?appointmentId=@Model.AppointmentId"><i class="bi bi-eyedropper"></i> Request Test</a>
+                }
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a class="active" href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="dash-panel p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-3">
+                        <div>
+                            <span class="text-muted small">Appointment Status</span>
+                            <h4 class="mb-0">@Model.AppointmentCode</h4>
+                        </div>
+                        <span class="status-badge @statusClass fs-6 px-3 py-1">@Model.AppointmentStatus</span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Patient Name</small>
+                                <strong>@Model.PatientName</strong>
+                                <span class="d-block small text-muted">Code: @Model.PatientCode</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Date &amp; Time</small>
+                                <strong>@Model.AppointmentDate.ToString("dd MMM yyyy")</strong>
+                                <span class="d-block small text-muted">@DateTime.Today.Add(Model.StartTime).ToString("hh:mm tt") - @DateTime.Today.Add(Model.EndTime).ToString("hh:mm tt")</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Consultation Fee</small>
+                                <strong class="text-success">₹@Model.ConsultationFee.ToString("N0")</strong>
+                                <span class="d-block small text-muted">Source: @Model.BookingSource</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h5 class="h6 text-muted text-uppercase fw-bold mb-1">Reason for Visit</h5>
+                        <p class="text-secondary p-3 bg-light rounded mb-0">@(string.IsNullOrWhiteSpace(Model.ReasonForVisit) ? "General consultation" : Model.ReasonForVisit)</p>
+                    </div>
+
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <a class="btn btn-outline-secondary btn-sm" href="/Doctor/PatientDetails/@Model.PatientId"><i class="bi bi-file-earmark-person"></i> View Patient History</a>
+                    </div>
+                </div>
+
+                @if (consultation != null)
+                {
+                    <div class="dash-panel p-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3">
+                            <h4 class="h5 mb-0"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Recorded Consultation</h4>
+                            <small class="text-muted">@consultation.ConsultationDate.ToString("dd MMM yyyy, hh:mm tt")</small>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">Diagnosis</small>
+                                <strong>@(string.IsNullOrWhiteSpace(consultation.Diagnosis) ? "Not specified" : consultation.Diagnosis)</strong>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">Follow-up Date</small>
+                                <strong>@(consultation.FollowUpDate.HasValue ? consultation.FollowUpDate.Value.ToString("dd MMM yyyy") : "None specified")</strong>
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted d-block">Doctor Notes</small>
+                                <p class="text-secondary mb-0">@(string.IsNullOrWhiteSpace(consultation.DoctorNotes) ? "None" : consultation.DoctorNotes)</p>
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted d-block">Symptoms</small>
+                                <p class="text-secondary mb-0">@(string.IsNullOrWhiteSpace(consultation.Symptoms) ? "None" : consultation.Symptoms)</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-light rounded d-flex gap-4">
+                            <div><small class="text-muted d-block">BP</small><strong>@(consultation.BloodPressure ?? "-")</strong></div>
+                            <div><small class="text-muted d-block">Temperature</small><strong>@(consultation.Temperature.HasValue ? $"{consultation.Temperature}°F" : "-")</strong></div>
+                            <div><small class="text-muted d-block">Weight</small><strong>@(consultation.Weight.HasValue ? $"{consultation.Weight} kg" : "-")</strong></div>
+                            <div><small class="text-muted d-block">Pulse</small><strong>@(consultation.PulseRate.HasValue ? $"{consultation.PulseRate} bpm" : "-")</strong></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

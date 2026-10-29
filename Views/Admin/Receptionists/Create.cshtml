@@ -1,1 +1,87 @@
-@{ ViewData["Title"] = "Create receptionist"; } @await Html.PartialAsync("_AdminModulePage")
+@model HealthCare_Portal.ViewModels.ReceptionistFormViewModel
+@{
+    ViewData["Title"] = "Create receptionist";
+}
+
+<section class="dashboard-page admin-module-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="workspace-heading">
+            <div>
+                <span class="eyebrow">Admin portal</span>
+                <h2>Add receptionist</h2>
+                <p>Create a receptionist profile and linked login account.</p>
+            </div>
+            <div class="action-group">
+                <a class="btn btn-outline-secondary" href="/Admin/Receptionists"><i class="bi bi-arrow-left"></i> Back to receptionists</a>
+            </div>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div asp-validation-summary="All" class="mb-0"></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="staff-panel mt-3">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">Receptionist profile</span>
+                    <h3>Account details</h3>
+                </div>
+            </div>
+            <form method="post" action="/Admin/Receptionists/Create">
+                @Html.AntiForgeryToken()
+                <div class="form-grid two">
+                    <label>
+                        First name *
+                        <input asp-for="FirstName" class="form-control" required maxlength="100" />
+                    </label>
+                    <label>
+                        Last name
+                        <input asp-for="LastName" class="form-control" maxlength="100" />
+                    </label>
+                    <label>
+                        Email address *
+                        <input asp-for="Email" class="form-control" type="email" required maxlength="150" />
+                    </label>
+                    <label>
+                        Phone number *
+                        <input asp-for="Phone" class="form-control" required maxlength="20" />
+                    </label>
+                    <label>
+                        Gender *
+                        <select asp-for="Gender" class="form-select" required>
+                            <option value="Female">Female</option>
+                            <option value="Male">Male</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </label>
+                    <label>
+                        Joining date
+                        <input asp-for="JoiningDate" class="form-control" type="date" />
+                    </label>
+                    <label>
+                        Employee code
+                        <input asp-for="EmployeeCode" class="form-control" maxlength="30" placeholder="Generated if blank" />
+                    </label>
+                    <label>
+                        Login ID
+                        <input asp-for="Username" class="form-control" maxlength="100" placeholder="Defaults to employee code" />
+                    </label>
+                    <label>
+                        Initial password
+                        <input asp-for="Password" class="form-control" type="password" placeholder="Default: Password@123" />
+                        <small class="text-muted">Defaults to Password@123 if left blank.</small>
+                    </label>
+                </div>
+                <div class="form-actions mt-4">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Save Receptionist</button>
+                    <a class="btn btn-link text-link" href="/Admin/Receptionists">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

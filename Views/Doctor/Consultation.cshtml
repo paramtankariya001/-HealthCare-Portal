@@ -1,1 +1,155 @@
-@{ ViewData["Title"] = "Consultation"; } @await Html.PartialAsync("_DoctorPage")
+@model HealthCare_Portal.ViewModels.ConsultationViewModel
+@{
+    ViewData["Title"] = "Patient consultation";
+    var appt = ViewData["Appointment"] as HealthCare_Portal.Models.Appointment;
+    var pastConsultations = ViewData["PastConsultations"] as IReadOnlyList<HealthCare_Portal.Models.Consultation> ?? Array.Empty<HealthCare_Portal.Models.Consultation>();
+    var isExisting = ViewData["IsExisting"] as bool? ?? false;
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Doctor portal</span>
+                <h2>Patient consultation</h2>
+                <p>@(appt != null ? $"Encounter for {appt.PatientName} ({appt.PatientCode}) · {appt.AppointmentCode}" : "Clinical consultation encounter")</p>
+            </div>
+            <div class="d-flex gap-2">
+                @if (appt != null)
+                {
+                    <a class="btn btn-outline-secondary" href="/Doctor/AppointmentDetails/@appt.AppointmentId"><i class="bi bi-arrow-left"></i> Appointment</a>
+                    <a class="btn btn-outline-primary" href="/Doctor/CreatePrescription?appointmentId=@appt.AppointmentId"><i class="bi bi-capsule"></i> Prescription</a>
+                    <a class="btn btn-outline-info" href="/Doctor/MedicalTests?appointmentId=@appt.AppointmentId"><i class="bi bi-eyedropper"></i> Request Test</a>
+                }
+            </div>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                @if (appt != null)
+                {
+                    <div class="dash-panel p-3 mb-4 bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="h6 mb-1">Patient: <strong>@appt.PatientName</strong> (@appt.PatientCode)</h4>
+                                <span class="text-muted small">Appointment: @appt.AppointmentCode &middot; Scheduled: @appt.AppointmentDate.ToString("dd MMM yyyy")</span>
+                            </div>
+                            <div>
+                                <span class="status-badge confirmed">@appt.AppointmentStatus</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="dash-panel p-4 mb-4">
+                    <div class="panel-heading mb-3">
+                        <div>
+                            <span class="eyebrow">Clinical encounter</span>
+                            <h3>@(isExisting ? "Review consultation notes" : "Record consultation")</h3>
+                        </div>
+                    </div>
+
+                    <form method="post" action="/Doctor/Consultation">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="AppointmentId" />
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="symptomsInput">Symptoms</label>
+                                <textarea asp-for="Symptoms" class="form-control" rows="3" id="symptomsInput" placeholder="Patient's presented symptoms and onset"></textarea>
+                                <span asp-validation-for="Symptoms" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="diagnosisInput">Diagnosis *</label>
+                                <textarea asp-for="Diagnosis" class="form-control" rows="3" id="diagnosisInput" placeholder="Clinical diagnosis or clinical impression" required></textarea>
+                                <span asp-validation-for="Diagnosis" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <h5 class="h6 text-muted text-uppercase fw-bold mt-4 mb-3">Vital Signs</h5>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Blood pressure (mmHg)</label>
+                                <input asp-for="BloodPressure" class="form-control" placeholder="120/80" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Temperature (°F)</label>
+                                <input asp-for="Temperature" class="form-control" type="number" step="0.1" placeholder="98.6" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Weight (kg)</label>
+                                <input asp-for="Weight" class="form-control" type="number" step="0.1" placeholder="70" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Pulse rate (bpm)</label>
+                                <input asp-for="Pulse" class="form-control" type="number" placeholder="72" />
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2 mb-4">
+                            <div class="col-md-8">
+                                <label class="form-label" for="notesInput">Doctor Notes &amp; Clinical Advice</label>
+                                <textarea asp-for="Notes" class="form-control" rows="3" id="notesInput" placeholder="Observations, lifestyle recommendations, treatment plan"></textarea>
+                                <span asp-validation-for="Notes" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="followUpDateInput">Follow-up Date</label>
+                                <input asp-for="FollowUpDate" class="form-control" type="date" id="followUpDateInput" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="FollowUpDate" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        @if (!isExisting)
+                        {
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <a class="btn btn-link text-link" href="/Doctor/Appointments">Cancel</a>
+                                <button class="btn btn-primary px-4" type="submit">
+                                    <i class="bi bi-check2-circle me-1"></i> Save Consultation &amp; Complete Visit
+                                </button>
+                            </div>
+                        }
+                    </form>
+                </div>
+
+                @if (pastConsultations.Count > 0)
+                {
+                    <div class="dash-panel p-4">
+                        <h4 class="h6 text-muted text-uppercase fw-bold mb-3">Past Consultation History for this Patient (@pastConsultations.Count)</h4>
+                        <div class="accordion" id="pastConsultationsAccordion">
+                            @foreach (var c in pastConsultations)
+                            {
+                                <div class="border rounded p-3 mb-2 bg-light">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <strong>Diagnosis: @(c.Diagnosis ?? "Not specified")</strong>
+                                        <small class="text-muted">@c.ConsultationDate.ToString("dd MMM yyyy")</small>
+                                    </div>
+                                    <p class="small text-secondary mb-1"><strong>Symptoms:</strong> @(c.Symptoms ?? "None")</p>
+                                    <p class="small text-secondary mb-0"><strong>Notes:</strong> @(c.DoctorNotes ?? "None")</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

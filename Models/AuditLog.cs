@@ -1,0 +1,2 @@
+namespace HealthCare_Portal.Models;
+public sealed class AuditLog { public long AuditLogId { get; set; } public int? UserId { get; set; } public string? RoleName { get; set; } public string Action { get; set; } = ""; public string ModuleName { get; set; } = ""; public string? Description { get; set; } public string? RecordId { get; set; } public string? IPAddress { get; set; } public DateTime CreatedAt { get; set; } }

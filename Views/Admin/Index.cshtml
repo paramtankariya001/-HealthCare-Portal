@@ -27,7 +27,62 @@
 
                 <section class="admin-section" id="admin-patients"><div class="workspace-heading"><div><span class="eyebrow">User management</span><h2>Patients</h2></div><button class="btn btn-primary" data-toast="Patient form opened."><i class="bi bi-person-plus"></i> Add patient</button></div><div class="filter-bar"><input class="form-control" placeholder="Search name, ID, email, or mobile" /><select class="form-select"><option>All genders</option><option>Female</option><option>Male</option></select><select class="form-select"><option>All blood groups</option><option>O positive</option><option>A positive</option></select><select class="form-select"><option>All statuses</option><option>Active</option><option>Inactive</option></select></div><div class="table-shell"><table class="staff-table admin-table"><thead><tr><th>Patient ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>Gender</th><th>Blood group</th><th>Registration date</th><th>Status</th><th>Actions</th></tr></thead><tbody><tr><td><strong>PT-12840</strong></td><td><span class="table-person"><span class="patient-initials peach-bg">DK</span> Divya Kulkarni</span></td><td>divya.k@example.com</td><td>+91 98765 44210</td><td>Female</td><td>O+</td><td>15 Sep 2026</td><td><span class="status-badge confirmed">Active</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action">Deactivate</button></td></tr><tr><td><strong>PT-12839</strong></td><td><span class="table-person"><span class="patient-initials mint-bg">RS</span> Rahul Singh</span></td><td>rahul.s@example.com</td><td>+91 98220 11456</td><td>Male</td><td>A+</td><td>14 Sep 2026</td><td><span class="status-badge confirmed">Active</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action">Deactivate</button></td></tr><tr><td><strong>PT-12798</strong></td><td><span class="table-person"><span class="patient-initials lilac-bg">MA</span> Meera Anand</span></td><td>meera.a@example.com</td><td>+91 98990 22331</td><td>Female</td><td>B+</td><td>02 Sep 2026</td><td><span class="status-badge cancelled">Inactive</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action primary-action">Activate</button></td></tr></tbody></table></div><div class="table-footer"><span>Showing 1 to 3 of 12,840 patients</span><div><button class="icon-button"><i class="bi bi-chevron-left"></i></button><button class="page-number active">1</button><button class="page-number">2</button><button class="page-number">3</button><button class="icon-button"><i class="bi bi-chevron-right"></i></button></div></div></section>
 
-                <section class="admin-section" id="admin-doctors"><div class="workspace-heading"><div><span class="eyebrow">User management</span><h2>Doctors</h2></div><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#doctorModal"><i class="bi bi-person-plus"></i> Add doctor</button></div><div class="filter-bar"><input class="form-control" placeholder="Search doctor or ID" /><select class="form-select"><option>All departments</option><option>Cardiology</option><option>Neurology</option><option>Orthopedics</option></select><select class="form-select"><option>All availability</option><option>Available today</option><option>On leave</option></select></div><div class="table-shell"><table class="staff-table admin-table"><thead><tr><th>Doctor ID</th><th>Name</th><th>Specialization</th><th>Department</th><th>Experience</th><th>Fee</th><th>Availability</th><th>Status</th><th>Actions</th></tr></thead><tbody><tr><td><strong>DR-0091</strong></td><td><span class="table-person"><span class="staff-avatar">SM</span> Dr. Sarah Mitchell</span></td><td>Interventional cardiology</td><td>Cardiology</td><td>12 years</td><td>₹1,200</td><td><span class="status-badge confirmed">Available</span></td><td><span class="status-badge confirmed">Active</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action">Deactivate</button></td></tr><tr><td><strong>DR-0092</strong></td><td><span class="table-person"><span class="staff-avatar peach-avatar">MC</span> Dr. Michael Chen</span></td><td>Family medicine</td><td>General medicine</td><td>9 years</td><td>₹1,000</td><td><span class="status-badge available">Busy</span></td><td><span class="status-badge confirmed">Active</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action">Deactivate</button></td></tr></tbody></table></div></section>
+                <section class="admin-section" id="admin-doctors"><div class="workspace-heading"><div><span class="eyebrow">User management</span><h2>Doctors</h2></div><div class="action-group"><a class="btn btn-outline-secondary me-2" href="/Admin/Doctors"><i class="bi bi-list"></i> Full Doctor Management</a><a class="btn btn-primary" href="/Admin/Doctors/Create"><i class="bi bi-person-plus"></i> Add doctor</a></div></div><div class="filter-bar"><input class="form-control" placeholder="Search doctor or ID" /><select class="form-select"><option>All departments</option><option>Cardiology</option><option>Neurology</option><option>Orthopedics</option></select><select class="form-select"><option>All availability</option><option>Available today</option><option>On leave</option></select></div><div class="table-shell"><table class="staff-table admin-table"><thead><tr><th>Doctor ID</th><th>Name</th><th>Specialization</th><th>Department</th><th>Experience</th><th>Fee</th><th>Availability</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+@{
+    var realDoctors = ViewData["Doctors"] as IEnumerable<HealthCare_Portal.Models.Doctor>;
+}
+@if (realDoctors != null && realDoctors.Any())
+{
+    foreach (var d in realDoctors)
+    {
+        var initials = (!string.IsNullOrWhiteSpace(d.FirstName) ? d.FirstName[..1] : "D") + (!string.IsNullOrWhiteSpace(d.LastName) ? d.LastName[..1] : "R");
+        <tr>
+            <td><strong>@d.DoctorCode</strong></td>
+            <td><span class="table-person"><span class="staff-avatar">@initials</span> Dr. @d.FirstName @d.LastName</span></td>
+            <td>@(d.SpecializationName ?? "Specialist")</td>
+            <td>@(d.DepartmentName ?? "General")</td>
+            <td>@d.ExperienceYears years</td>
+            <td>₹@d.ConsultationFee.ToString("N0")</td>
+            <td><span class="status-badge confirmed">@(d.IsActive ? "Available" : "Unavailable")</span></td>
+            <td>
+                @if (d.IsActive)
+                {
+                    <span class="status-badge confirmed">Active</span>
+                }
+                else
+                {
+                    <span class="status-badge cancelled">Inactive</span>
+                }
+            </td>
+            <td>
+                <div class="d-flex gap-1">
+                    <a class="table-action" href="/Admin/Doctors/Details/@d.DoctorId">View</a>
+                    <a class="table-action" href="/Admin/Doctors/Edit/@d.DoctorId">Edit</a>
+                    @if (d.IsActive)
+                    {
+                        <form method="post" action="/Admin/Doctors/Deactivate/@d.DoctorId" onsubmit="return confirm('Are you sure you want to deactivate Dr. @d.FirstName @d.LastName?');" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="table-action text-danger" style="border:none;background:none;cursor:pointer;">Deactivate</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" action="/Admin/Doctors/Activate/@d.DoctorId" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="table-action primary-action" style="border:none;background:none;cursor:pointer;">Activate</button>
+                        </form>
+                    }
+                </div>
+            </td>
+        </tr>
+    }
+}
+else
+{
+    <tr><td><strong>DR-0091</strong></td><td><span class="table-person"><span class="staff-avatar">SM</span> Dr. Sarah Mitchell</span></td><td>Interventional cardiology</td><td>Cardiology</td><td>12 years</td><td>₹1,200</td><td><span class="status-badge confirmed">Available</span></td><td><span class="status-badge confirmed">Active</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action">Deactivate</button></td></tr>
+    <tr><td><strong>DR-0092</strong></td><td><span class="table-person"><span class="staff-avatar peach-avatar">MC</span> Dr. Michael Chen</span></td><td>Family medicine</td><td>General medicine</td><td>9 years</td><td>₹1,000</td><td><span class="status-badge available">Busy</span></td><td><span class="status-badge confirmed">Active</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action">Deactivate</button></td></tr>
+}
+</tbody></table></div></section>
 
                 <section class="admin-section" id="admin-receptionists"><div class="workspace-heading"><div><span class="eyebrow">User management</span><h2>Receptionists</h2></div><button class="btn btn-primary" data-toast="Receptionist form opened."><i class="bi bi-person-plus"></i> Add receptionist</button></div><div class="table-shell"><table class="staff-table admin-table"><thead><tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Gender</th><th>Joining date</th><th>Status</th><th>Actions</th></tr></thead><tbody><tr><td><strong>EMP-041</strong></td><td>Riya Kapoor</td><td>riya.k@healthcareportal.com</td><td>+91 98000 11223</td><td>Female</td><td>12 Jan 2024</td><td><span class="status-badge confirmed">Active</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action">Deactivate</button></td></tr><tr><td><strong>EMP-042</strong></td><td>Manish Rao</td><td>manish.r@healthcareportal.com</td><td>+91 98000 22334</td><td>Male</td><td>28 Mar 2024</td><td><span class="status-badge confirmed">Active</span></td><td><button class="table-action">View</button><button class="table-action">Edit</button><button class="table-action">Deactivate</button></td></tr></tbody></table></div></section>
 

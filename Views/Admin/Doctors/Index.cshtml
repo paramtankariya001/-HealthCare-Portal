@@ -1,1 +1,139 @@
-@{ ViewData["Title"] = "Doctor management"; } @await Html.PartialAsync("_AdminModulePage")
+@model HealthCare_Portal.ViewModels.DoctorListViewModel
+@{
+    ViewData["Title"] = "Doctor management";
+}
+
+<section class="dashboard-page admin-module-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="workspace-heading">
+            <div>
+                <span class="eyebrow">Admin portal</span>
+                <h2>Doctor management</h2>
+                <p>Manage healthcare providers, qualifications, and specializations.</p>
+            </div>
+            <div class="action-group">
+                <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-arrow-left"></i> Back to Admin Dashboard</a>
+                <a class="btn btn-primary" href="/Admin/Doctors/Create"><i class="bi bi-plus-lg"></i> Add doctor</a>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <form method="get" action="/Admin/Doctors" class="filter-bar">
+            <input class="form-control" name="search" value="@Model.Search" placeholder="Search doctor name, code, or email" />
+            <select class="form-select" name="departmentId">
+                <option value="">All departments</option>
+                @foreach (var dept in Model.DepartmentList)
+                {
+                    <option value="@dept.Value" selected="@(dept.Selected)">@dept.Text</option>
+                }
+            </select>
+            <select class="form-select" name="status">
+                <option value="All" selected="@(Model.Status == "All")">All statuses</option>
+                <option value="Active" selected="@(Model.Status == "Active")">Active</option>
+                <option value="Inactive" selected="@(Model.Status == "Inactive")">Inactive</option>
+            </select>
+            <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+            <a class="btn btn-link text-link" href="/Admin/Doctors">Reset</a>
+        </form>
+
+        <div class="portal-stats admin-stats">
+            <div class="portal-stat mint"><i class="bi bi-heart-pulse"></i><small>Total doctors</small><strong>@Model.Doctors.Count</strong><span>In system</span></div>
+            <div class="portal-stat peach"><i class="bi bi-check2-circle"></i><small>Active doctors</small><strong>@Model.Doctors.Count(d => d.IsActive)</strong><span>Available</span></div>
+            <div class="portal-stat lilac"><i class="bi bi-slash-circle"></i><small>Inactive doctors</small><strong>@Model.Doctors.Count(d => !d.IsActive)</strong><span>Deactivated</span></div>
+            <div class="portal-stat yellow"><i class="bi bi-building"></i><small>Departments</small><strong>@Model.DepartmentList.Count</strong><span>Specialized</span></div>
+        </div>
+
+        <div class="table-shell mt-3">
+            <table class="staff-table admin-table">
+                <thead>
+                    <tr>
+                        <th>Doctor Code</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Specialization</th>
+                        <th>Experience</th>
+                        <th>Fee</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Doctors.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">No doctors found matching the criteria.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var doctor in Model.Doctors)
+                        {
+                            var initials = (!string.IsNullOrWhiteSpace(doctor.FirstName) ? doctor.FirstName[..1] : "D") + (!string.IsNullOrWhiteSpace(doctor.LastName) ? doctor.LastName[..1] : "R");
+                            <tr>
+                                <td><strong>@doctor.DoctorCode</strong></td>
+                                <td>
+                                    <span class="table-person">
+                                        <span class="staff-avatar">@initials</span>
+                                        Dr. @doctor.FirstName @doctor.LastName
+                                    </span>
+                                </td>
+                                <td>@(doctor.DepartmentName ?? "General")</td>
+                                <td>@(doctor.SpecializationName ?? "Specialist")</td>
+                                <td>@doctor.ExperienceYears years</td>
+                                <td>₹@doctor.ConsultationFee.ToString("N0")</td>
+                                <td>
+                                    @if (doctor.IsActive)
+                                    {
+                                        <span class="status-badge confirmed">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge cancelled">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <a class="table-action" href="/Admin/Doctors/Details/@doctor.DoctorId">View</a>
+                                        <a class="table-action" href="/Admin/Doctors/Edit/@doctor.DoctorId">Edit</a>
+                                        @if (doctor.IsActive)
+                                        {
+                                            <form method="post" action="/Admin/Doctors/Deactivate/@doctor.DoctorId" onsubmit="return confirm('Are you sure you want to deactivate Dr. @doctor.FirstName @doctor.LastName?');" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="table-action text-danger" style="border:none;background:none;cursor:pointer;">Deactivate</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" action="/Admin/Doctors/Activate/@doctor.DoctorId" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="table-action primary-action" style="border:none;background:none;cursor:pointer;">Activate</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="table-footer">
+            <span>Showing @Model.Doctors.Count record(s)</span>
+        </div>
+    </div>
+</section>

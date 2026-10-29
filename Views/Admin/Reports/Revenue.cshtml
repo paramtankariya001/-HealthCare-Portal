@@ -1,1 +1,100 @@
-@{ ViewData["Title"] = "Revenue report"; } @await Html.PartialAsync("_AdminModulePage")
+@{
+    ViewData["Title"] = "Revenue & Collections Report";
+    var reportData = ViewData["ReportData"] as IReadOnlyList<Dictionary<string, object?>> ?? Array.Empty<Dictionary<string, object?>>();
+    var fromDate = (ViewData["FromDate"] as DateTime?)?.ToString("yyyy-MM-dd");
+    var toDate = (ViewData["ToDate"] as DateTime?)?.ToString("yyyy-MM-dd");
+    decimal totalRevenue = 0;
+    foreach (var r in reportData)
+    {
+        totalRevenue += Convert.ToDecimal(r["Revenue"]);
+    }
+}
+
+<section class="dashboard-page admin-module-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="workspace-heading">
+            <div>
+                <span class="eyebrow">Financial Analytics</span>
+                <h2>Hospital Revenue Report</h2>
+                <p>Daily and overall collections from patient consultation, lab tests, and treatments.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/Admin/Reports?page=Appointments" class="btn btn-outline-secondary"><i class="bi bi-calendar-event"></i> Appointments</a>
+                <a href="/Admin/Reports?page=Doctors" class="btn btn-outline-secondary"><i class="bi bi-person-badge"></i> Doctors</a>
+                <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4 bg-light border-0">
+            <form method="get" action="/Admin/Reports" class="row g-3 align-items-end">
+                <input type="hidden" name="page" value="Revenue" />
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">From Date</label>
+                    <input type="date" name="fromDate" value="@fromDate" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">To Date</label>
+                    <input type="date" name="toDate" value="@toDate" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Apply Date Filter</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="portal-stats admin-stats mb-4">
+            <div class="portal-stat mint">
+                <i class="bi bi-currency-rupee"></i>
+                <small>Total Revenue</small>
+                <strong>₹@totalRevenue.ToString("N2")</strong>
+                <span>Filtered Range</span>
+            </div>
+            <div class="portal-stat lilac">
+                <i class="bi bi-calendar-check"></i>
+                <small>Active Collection Days</small>
+                <strong>@reportData.Count</strong>
+                <span>With recorded payments</span>
+            </div>
+            <div class="portal-stat yellow">
+                <i class="bi bi-graph-up-arrow"></i>
+                <small>Avg Daily Collection</small>
+                <strong>₹@(reportData.Count > 0 ? (totalRevenue / reportData.Count).ToString("N2") : "0.00")</strong>
+                <span>Average per active day</span>
+            </div>
+        </div>
+
+        <div class="table-shell mt-3">
+            <table class="staff-table admin-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Collections (₹)</th>
+                        <th>% of Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (reportData.Any())
+                    {
+                        foreach (var r in reportData)
+                        {
+                            var date = Convert.ToDateTime(r["PaymentDate"]);
+                            var rev = Convert.ToDecimal(r["Revenue"]);
+                            <tr>
+                                <td><strong>@date.ToString("dd MMMM yyyy (dddd)")</strong></td>
+                                <td><strong class="text-success">₹@rev.ToString("N2")</strong></td>
+                                <td>@(totalRevenue > 0 ? $"{(rev * 100 / totalRevenue):F1}%" : "0%")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">No revenue records found for this period.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

@@ -1,1 +1,87 @@
-@{ ViewData["Title"] = "Doctor details"; } @await Html.PartialAsync("_PatientPage")
+@model HealthCare_Portal.Models.Doctor
+@{
+    ViewData["Title"] = $"Dr. {Model.FirstName} {Model.LastName}";
+    var initials = (!string.IsNullOrWhiteSpace(Model.FirstName) ? Model.FirstName[..1] : "D") + (!string.IsNullOrWhiteSpace(Model.LastName) ? Model.LastName[..1] : "R");
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Doctor profile</span>
+                <h2>Dr. @Model.FirstName @Model.LastName</h2>
+                <p>@(Model.DepartmentName ?? "Department") &middot; @(Model.SpecializationName ?? "Specialist")</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="/Patient/FindDoctor"><i class="bi bi-arrow-left"></i> Back to doctors</a>
+                <a class="btn btn-primary" href="/Patient/BookAppointment?doctorId=@Model.DoctorId"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+            </div>
+        </div>
+
+        <div class="patient-dashboard">
+            <partial name="_Sidebar" />
+            <div class="dashboard-main">
+                <div class="dash-panel p-4 mb-4">
+                    <div class="d-flex align-items-center gap-4 mb-4 pb-3 border-bottom">
+                        <span class="staff-avatar" style="width:72px;height:72px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.6rem;">@initials</span>
+                        <div>
+                            <h3 class="mb-1">Dr. @Model.FirstName @Model.LastName</h3>
+                            <p class="text-muted mb-1"><i class="bi bi-tag me-1"></i> Doctor Code: <strong>@Model.DoctorCode</strong></p>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-check-circle me-1"></i> Active Practice</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Department</small>
+                                <strong>@(Model.DepartmentName ?? "General Medicine")</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Specialization</small>
+                                <strong>@(Model.SpecializationName ?? "Specialist")</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Consultation Fee</small>
+                                <strong class="text-success">₹@Model.ConsultationFee.ToString("N0")</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Experience</small>
+                                <strong>@Model.ExperienceYears years</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Qualification</small>
+                                <strong>@(string.IsNullOrWhiteSpace(Model.Qualification) ? "MBBS" : Model.Qualification)</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Gender</small>
+                                <strong>@Model.Gender</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4 class="h6 text-muted text-uppercase fw-bold mb-2">About the Doctor</h4>
+                        <p class="text-secondary">@(string.IsNullOrWhiteSpace(Model.AboutDoctor) ? "Dr. " + Model.FirstName + " " + Model.LastName + " is a dedicated specialist providing comprehensive patient care." : Model.AboutDoctor)</p>
+                    </div>
+
+                    <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-clock-history me-1"></i> Standard appointment duration: 30 minutes</span>
+                        <a href="/Patient/BookAppointment?doctorId=@Model.DoctorId" class="btn btn-primary"><i class="bi bi-calendar-check me-1"></i> Book Appointment Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

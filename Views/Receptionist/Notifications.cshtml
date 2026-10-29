@@ -1,1 +1,79 @@
-@{ ViewData["Title"] = "Receptionist notifications"; } @await Html.PartialAsync("_ReceptionistPage")
+@model IEnumerable<HealthCare_Portal.Models.Notification>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Front Desk Alerts</span>
+                <h2>Notifications</h2>
+                <p>System announcements, appointment alerts, and payment updates.</p>
+            </div>
+            @if (Model != null && Model.Any(n => !n.IsRead))
+            {
+                <form asp-action="MarkAllNotificationsRead" asp-controller="Receptionist" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <i class="bi bi-check2-all"></i> Mark All as Read
+                    </button>
+                </form>
+            }
+        </div>
+
+        <div class="dash-panel">
+            <div class="dash-panel-head">
+                <div>
+                    <span class="eyebrow">Recent Activity</span>
+                    <h3>Notification Log</h3>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="activity-list mt-3">
+                    @foreach (var n in Model)
+                    {
+                        var iconClass = n.NotificationType switch
+                        {
+                            "Appointment" => "bi-calendar-event mint-text",
+                            "Payment" => "bi-cash-coin lilac-text",
+                            "Prescription" => "bi-capsule peach-text",
+                            "Medical Test" => "bi-heart-pulse yellow-text",
+                            _ => "bi-bell mint-text"
+                        };
+
+                        var unreadClass = !n.IsRead ? "bg-light border-start border-4 border-primary ps-3" : "";
+
+                        <div class="activity-item p-3 mb-2 rounded @unreadClass">
+                            <span class="activity-icon @(n.IsRead ? "peach" : "mint")">
+                                <i class="bi @iconClass"></i>
+                            </span>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <strong>@n.Title</strong>
+                                    <small class="text-muted">@n.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")</small>
+                                </div>
+                                <p class="mb-0 text-muted">@n.Message</p>
+                            </div>
+                            @if (!n.IsRead)
+                            {
+                                <span class="badge bg-primary ms-2">New</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-bell-slash fs-1 d-block mb-3"></i>
+                    <h5>No notifications found</h5>
+                    <p>You have caught up with all alerts.</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>

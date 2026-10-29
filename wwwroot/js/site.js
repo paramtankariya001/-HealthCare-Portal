@@ -19,23 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 
-	document.querySelectorAll(".role-switch button").forEach((role) => {
-		role.addEventListener("click", () => {
-			document.querySelectorAll(".role-switch button").forEach((item) => item.classList.remove("active"));
-			role.classList.add("active");
-		});
-	});
-
-	document.querySelectorAll(".password-toggle").forEach((toggle) => {
-		toggle.addEventListener("click", () => {
-			const input = toggle.parentElement.querySelector("input");
-			const isPassword = input.type === "password";
-			input.type = isPassword ? "text" : "password";
-			toggle.innerHTML = `<i class="bi bi-eye${isPassword ? "-slash" : ""}"></i>`;
-			toggle.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
-		});
-	});
-
 	document.querySelectorAll(".demo-form").forEach((form) => {
 		form.addEventListener("submit", (event) => {
 			event.preventDefault();
@@ -58,15 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.getElementById("continueBooking")?.addEventListener("click", () => {
 		showToast("Great choice. Your next step is to select a doctor.");
-	});
-
-	document.getElementById("portalAction")?.addEventListener("click", () => {
-		document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" });
-		showToast("Appointment booking is ready when you are.");
-	});
-
-	document.getElementById("rescheduleAction")?.addEventListener("click", () => {
-		showToast("Rescheduling is available in this frontend demonstration.");
 	});
 
 	document.querySelectorAll(".navbar-nav .nav-link").forEach((link) => {

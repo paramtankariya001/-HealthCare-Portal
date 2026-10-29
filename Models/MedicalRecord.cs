@@ -1,0 +1,2 @@
+namespace HealthCare_Portal.Models;
+public sealed class MedicalRecord { public long MedicalRecordId { get; set; } public int PatientId { get; set; } public int DoctorId { get; set; } public long? AppointmentId { get; set; } public long? ConsultationId { get; set; } public string RecordType { get; set; } = ""; public string? RecordTitle { get; set; } public string? Description { get; set; } public DateTime RecordDate { get; set; } }

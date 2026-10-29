@@ -1,1 +1,172 @@
-@{ ViewData["Title"] = "Receptionist dashboard"; } @await Html.PartialAsync("_ReceptionistPage")
+@using HealthCare_Portal.Models
+@{
+    ViewData["Title"] = "Front desk dashboard";
+    var stats = ViewData["Stats"] as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var queue = ViewData["Queue"] as IReadOnlyList<Appointment> ?? Array.Empty<Appointment>();
+    var todayAppointments = ViewData["TodayAppointments"] as IReadOnlyList<Appointment> ?? Array.Empty<Appointment>();
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Receptionist portal</span>
+                <h2>Front desk dashboard</h2>
+                <p>Clinic Front Desk <span class="topbar-dot"></span> Today, @DateTime.Today.ToString("dddd, dd MMMM yyyy")</p>
+            </div>
+            <a class="btn btn-primary" href="/Receptionist/PatientRegistration"><i class="bi bi-person-plus"></i> Register patient</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <div class="patient-mini">
+                    <span class="patient-avatar" style="background:#d68c69">FD</span>
+                    <div>
+                        <strong>Front Desk</strong>
+                        <small>Reception Operations</small>
+                    </div>
+                </div>
+                <nav class="dashboard-nav" aria-label="Receptionist navigation">
+                    <a class="active" href="/Receptionist/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Receptionist/PatientRegistration"><i class="bi bi-person-plus"></i> Register patient</a>
+                    <a href="/Receptionist/Patients"><i class="bi bi-people"></i> Patient list</a>
+                    <a href="/Receptionist/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Receptionist/AppointmentBooking"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+                    <a href="/Receptionist/CheckIn"><i class="bi bi-person-check"></i> Check-in queue</a>
+                    <a href="/Receptionist/AppointmentManagement"><i class="bi bi-kanban"></i> Queue management</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="dashboard-stats">
+                    <div class="dash-stat">
+                        <span class="dash-icon mint"><i class="bi bi-calendar-check"></i></span>
+                        <div>
+                            <small>Today's appointments</small>
+                            <strong>@(stats.GetValueOrDefault("TodayAppointments", todayAppointments.Count).ToString("D2"))</strong>
+                            <a href="/Receptionist/Appointments">View schedule</a>
+                        </div>
+                    </div>
+                    <div class="dash-stat">
+                        <span class="dash-icon peach"><i class="bi bi-hourglass-split"></i></span>
+                        <div>
+                            <small>Pending check-in</small>
+                            <strong>@(stats.GetValueOrDefault("PendingAppointments", todayAppointments.Count(a => a.AppointmentStatus == "Pending" || a.AppointmentStatus == "Confirmed")).ToString("D2"))</strong>
+                            <a href="/Receptionist/CheckIn">Waiting room</a>
+                        </div>
+                    </div>
+                    <div class="dash-stat">
+                        <span class="dash-icon lilac"><i class="bi bi-person-check"></i></span>
+                        <div>
+                            <small>Checked-in queue</small>
+                            <strong>@(stats.GetValueOrDefault("CheckedInAppointments", queue.Count(a => a.AppointmentStatus == "Checked-In")).ToString("D2"))</strong>
+                            <a href="/Receptionist/CheckIn">Live queue</a>
+                        </div>
+                    </div>
+                    <div class="dash-stat">
+                        <span class="dash-icon yellow"><i class="bi bi-people"></i></span>
+                        <div>
+                            <small>Active patients</small>
+                            <strong>@stats.GetValueOrDefault("ActivePatients", 0)</strong>
+                            <a href="/Receptionist/Patients">Patient search</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-columns">
+                    <div class="dash-panel">
+                        <div class="dash-panel-head">
+                            <div>
+                                <span class="eyebrow">Live waiting room</span>
+                                <h3>Today's patient queue (@queue.Count)</h3>
+                            </div>
+                            <span class="status-badge available">@queue.Count active</span>
+                        </div>
+                        <div class="activity-list">
+                            @if (queue.Count == 0)
+                            {
+                                <div class="p-4 text-center text-muted">
+                                    <i class="bi bi-people display-6 d-block mb-2 text-muted"></i>
+                                    No patients currently waiting in queue.
+                                </div>
+                            }
+                            else
+                            {
+                                @foreach (var appt in queue.Take(5))
+                                {
+                                    <div class="activity-item d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="activity-icon @(appt.AppointmentStatus == "In Consultation" ? "peach" : "mint")">
+                                                <i class="bi @(appt.AppointmentStatus == "In Consultation" ? "bi-heart-pulse" : "bi-person-check")"></i>
+                                            </span>
+                                            <div>
+                                                <strong>@appt.PatientName</strong>
+                                                <small>@appt.DoctorName &middot; @DateTime.Today.Add(appt.StartTime).ToString("hh:mm tt")</small>
+                                                <span class="status-badge @appt.AppointmentStatus.ToLowerInvariant().Replace(" ", "-") d-inline-block ms-1">@appt.AppointmentStatus</span>
+                                            </div>
+                                        </div>
+                                        @if (appt.AppointmentStatus == "Pending" || appt.AppointmentStatus == "Confirmed")
+                                        {
+                                            <form method="post" action="/Receptionist/CheckIn" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="appointmentId" value="@appt.AppointmentId" />
+                                                <button type="submit" class="btn btn-sm btn-primary">Check-in</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <a class="btn btn-sm btn-outline-secondary" href="/Receptionist/AppointmentDetails/@appt.AppointmentId">Details</a>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="dash-panel">
+                        <div class="dash-panel-head">
+                            <div>
+                                <span class="eyebrow">Front desk shortcuts</span>
+                                <h3>Quick actions</h3>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <a href="/Receptionist/PatientRegistration">
+                                <i class="bi bi-person-plus mint-text"></i>
+                                <span>Register patient<small>Intake new patient</small></span>
+                            </a>
+                            <a href="/Receptionist/AppointmentBooking">
+                                <i class="bi bi-calendar-plus peach-text"></i>
+                                <span>Book appointment<small>Schedule clinic visit</small></span>
+                            </a>
+                            <a href="/Receptionist/CheckIn">
+                                <i class="bi bi-person-check lilac-text"></i>
+                                <span>Check-in queue<small>Manage waiting room</small></span>
+                            </a>
+                            <a href="/Receptionist/Patients">
+                                <i class="bi bi-search yellow-text"></i>
+                                <span>Search patients<small>Find records and history</small></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

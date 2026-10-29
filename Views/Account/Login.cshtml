@@ -1,1 +1,3 @@
-@{ ViewData["Title"] = "Sign in"; } @await Html.PartialAsync("_AccountPage")
+@model HealthCare_Portal.ViewModels.LoginViewModel
+@{ ViewData["Title"] = "Sign in"; }
+@await Html.PartialAsync("_AccountPage", Model)

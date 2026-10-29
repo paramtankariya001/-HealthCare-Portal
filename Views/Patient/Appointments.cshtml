@@ -1,1 +1,121 @@
-@{ ViewData["Title"] = "Appointments"; } @await Html.PartialAsync("_PatientPage")
+@model IReadOnlyList<HealthCare_Portal.Models.Appointment>
+@{
+    ViewData["Title"] = "My appointments";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Patient portal</span>
+                <h2>My appointments</h2>
+                <p>View your upcoming visits, past medical appointments, or reschedule if needed.</p>
+            </div>
+            <a class="btn btn-primary" href="/Patient/BookAppointment"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <partial name="_Sidebar" />
+            <div class="dashboard-main">
+                <div class="table-shell">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Doctor</th>
+                                <th>Department</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Fee</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model == null || Model.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center py-5 text-muted">
+                                        <i class="bi bi-calendar-x display-6 text-muted mb-2 d-block"></i>
+                                        No appointments scheduled yet.
+                                        <div class="mt-2">
+                                            <a class="btn btn-primary btn-sm" href="/Patient/BookAppointment">Book your first appointment</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var appt in Model)
+                                {
+                                    var isEligible = !appt.AppointmentStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase) &&
+                                                     !appt.AppointmentStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase) &&
+                                                     !appt.AppointmentStatus.Equals("No Show", StringComparison.OrdinalIgnoreCase);
+
+                                    var statusClass = appt.AppointmentStatus.ToLowerInvariant() switch
+                                    {
+                                        "confirmed" => "confirmed",
+                                        "completed" => "confirmed",
+                                        "pending" => "pending",
+                                        "cancelled" => "cancelled",
+                                        _ => "pending"
+                                    };
+
+                                    <tr>
+                                        <td><strong>@appt.AppointmentCode</strong></td>
+                                        <td>@(string.IsNullOrWhiteSpace(appt.DoctorName) ? $"Dr. #{appt.DoctorId}" : appt.DoctorName)</td>
+                                        <td>@(appt.DepartmentName ?? "General")</td>
+                                        <td>@appt.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                        <td>
+                                            @(DateTime.Today.Add(appt.StartTime).ToString("hh:mm tt")) - @(DateTime.Today.Add(appt.EndTime).ToString("hh:mm tt"))
+                                        </td>
+                                        <td>₹@appt.ConsultationFee.ToString("N0")</td>
+                                        <td>
+                                            <span class="status-badge @statusClass">@appt.AppointmentStatus</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <a class="table-action" href="/Patient/AppointmentDetails/@appt.AppointmentId">Details</a>
+                                                @if (isEligible)
+                                                {
+                                                    <a class="table-action" href="/Patient/RescheduleAppointment/@appt.AppointmentId">Reschedule</a>
+                                                    <form method="post" action="/Patient/CancelAppointment/@appt.AppointmentId" onsubmit="return confirm('Are you sure you want to cancel this appointment (@appt.AppointmentCode)?');" style="display:inline;">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="table-action text-danger" style="border:none;background:none;cursor:pointer;padding:0;">Cancel</button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model != null && Model.Count > 0)
+                {
+                    <div class="table-footer mt-2">
+                        <span>Showing @Model.Count appointment(s)</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

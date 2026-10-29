@@ -1,1 +1,81 @@
-@{ ViewData["Title"] = "Payments"; } @await Html.PartialAsync("_ReceptionistPage")
+@model IEnumerable<HealthCare_Portal.Models.Payment>
+@{
+    ViewData["Title"] = "Payment Transactions";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Front Desk Reconciliations</span>
+                <h2>Payment History</h2>
+                <p>Complete record of all cash, card, and digital transactions collected.</p>
+            </div>
+            <a class="btn btn-primary" href="/Receptionist/Billing">
+                <i class="bi bi-receipt"></i> View Invoices
+            </a>
+        </div>
+
+        <div class="dash-panel">
+            <div class="dash-panel-head">
+                <div>
+                    <span class="eyebrow">Payment Log</span>
+                    <h3>Received Transactions</h3>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-shell mt-3">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction Code</th>
+                                <th>Invoice #</th>
+                                <th>Patient</th>
+                                <th>Date &amp; Time</th>
+                                <th>Method</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model)
+                            {
+                                <tr>
+                                    <td><strong>@p.TransactionCode</strong></td>
+                                    <td>
+                                        <a href="/Receptionist/InvoiceDetails?id=@p.BillId" class="text-decoration-none fw-bold">
+                                            @p.InvoiceNumber
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="table-person">
+                                            <strong>@p.PatientName</strong>
+                                            <small class="text-muted">@p.PatientCode</small>
+                                        </span>
+                                    </td>
+                                    <td>@p.PaymentDate.ToString("dd MMM yyyy, hh:mm tt")</td>
+                                    <td><span class="badge bg-light text-dark border">@p.PaymentMethod</span></td>
+                                    <td><strong class="text-success">₹@p.Amount.ToString("N2")</strong></td>
+                                    <td><span class="status-badge completed">@p.PaymentStatus</span></td>
+                                    <td><small class="text-muted">@(string.IsNullOrWhiteSpace(p.ReferenceNumber) ? "—" : p.ReferenceNumber)</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-cash-stack fs-1 d-block mb-3"></i>
+                    <h5>No payment transactions recorded</h5>
+                    <p>Payments collected against bills will be logged here.</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>

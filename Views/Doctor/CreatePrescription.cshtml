@@ -1,1 +1,199 @@
-@{ ViewData["Title"] = "Create prescription"; } @await Html.PartialAsync("_ClinicalPage")
+@model HealthCare_Portal.ViewModels.PrescriptionViewModel
+@{
+    ViewData["Title"] = "Create digital prescription";
+    var appt = ViewData["Appointment"] as HealthCare_Portal.Models.Appointment;
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Digital prescription</span>
+                <h2>Create digital prescription</h2>
+                <p>@(appt != null ? $"Prescription for {appt.PatientName} ({appt.PatientCode}) · {appt.AppointmentCode}" : "Prescribe medications and dosage instructions")</p>
+            </div>
+            <div class="d-flex gap-2">
+                @if (appt != null)
+                {
+                    <a class="btn btn-outline-secondary" href="/Doctor/AppointmentDetails/@appt.AppointmentId"><i class="bi bi-arrow-left"></i> Appointment</a>
+                }
+                <a class="btn btn-outline-secondary" href="/Doctor/PrescriptionHistory"><i class="bi bi-clock-history"></i> Prescription history</a>
+            </div>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a class="active" href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                @if (appt != null)
+                {
+                    <div class="dash-panel p-3 mb-4 bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="h6 mb-0">Patient: <strong>@appt.PatientName</strong> (@appt.PatientCode)</h4>
+                                <span class="text-muted small">Appointment Ref: @appt.AppointmentCode &middot; Date: @appt.AppointmentDate.ToString("dd MMM yyyy")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="dash-panel p-4">
+                    <form method="post" action="/Doctor/CreatePrescription" id="rxForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="AppointmentId" />
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-8">
+                                <label class="form-label" for="diagnosisInput">Diagnosis</label>
+                                <input asp-for="Diagnosis" class="form-control" id="diagnosisInput" placeholder="Condition or diagnostic summary" />
+                                <span asp-validation-for="Diagnosis" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="followUpInput">Next Follow-up Date</label>
+                                <input asp-for="FollowUpDate" class="form-control" type="date" id="followUpInput" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="instructionsInput">General Advice &amp; Instructions</label>
+                                <textarea asp-for="Instructions" class="form-control" rows="2" id="instructionsInput" placeholder="Dietary instructions, rest, hydration, warning signs"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Prescribed Medicines Section -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="h6 text-muted text-uppercase fw-bold mb-0">Prescribed Medicines</h4>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="addMedicineBtn">
+                                    <i class="bi bi-plus-lg me-1"></i> Add Medicine
+                                </button>
+                            </div>
+
+                            <div id="medicineRowsContainer">
+                                @for (int i = 0; i < Model.PrescriptionItems.Count; i++)
+                                {
+                                    <div class="row g-2 align-items-center p-2 mb-2 border rounded medicine-row bg-white">
+                                        <div class="col-md-3">
+                                            <label class="form-label small text-muted mb-1">Medicine *</label>
+                                            <input name="PrescriptionItems[@i].MedicineName" value="@Model.PrescriptionItems[i].MedicineName" class="form-control form-control-sm" placeholder="e.g. Paracetamol" required />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label small text-muted mb-1">Dosage</label>
+                                            <input name="PrescriptionItems[@i].Dosage" value="@Model.PrescriptionItems[i].Dosage" class="form-control form-control-sm" placeholder="e.g. 500 mg" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label small text-muted mb-1">Frequency</label>
+                                            <input name="PrescriptionItems[@i].Frequency" value="@Model.PrescriptionItems[i].Frequency" class="form-control form-control-sm" placeholder="e.g. 1-0-1" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label small text-muted mb-1">Duration</label>
+                                            <input name="PrescriptionItems[@i].Duration" value="@Model.PrescriptionItems[i].Duration" class="form-control form-control-sm" placeholder="e.g. 5 days" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label small text-muted mb-1">Instructions</label>
+                                            <input name="PrescriptionItems[@i].Instructions" value="@Model.PrescriptionItems[i].Instructions" class="form-control form-control-sm" placeholder="After meals" />
+                                        </div>
+                                        <div class="col-md-1 text-end pt-3">
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-medicine-btn" title="Remove"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a class="btn btn-link text-link" href="/Doctor/Appointments">Cancel</a>
+                            <button class="btn btn-primary px-4" type="submit">
+                                <i class="bi bi-check2-circle me-1"></i> Save &amp; Issue Prescription
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('medicineRowsContainer');
+            const addBtn = document.getElementById('addMedicineBtn');
+
+            function bindRemoveButtons() {
+                container.querySelectorAll('.remove-medicine-btn').forEach(btn => {
+                    btn.onclick = function () {
+                        if (container.querySelectorAll('.medicine-row').length > 1) {
+                            this.closest('.medicine-row').remove();
+                            reindexRows();
+                        } else {
+                            alert('At least one medicine row is required.');
+                        }
+                    };
+                });
+            }
+
+            function reindexRows() {
+                container.querySelectorAll('.medicine-row').forEach((row, idx) => {
+                    row.querySelectorAll('input').forEach(input => {
+                        const name = input.getAttribute('name');
+                        if (name) {
+                            input.setAttribute('name', name.replace(/\[\d+\]/, `[${idx}]`));
+                        }
+                    });
+                });
+            }
+
+            addBtn.addEventListener('click', function () {
+                const count = container.querySelectorAll('.medicine-row').length;
+                const row = document.createElement('div');
+                row.className = 'row g-2 align-items-center p-2 mb-2 border rounded medicine-row bg-white';
+                row.innerHTML = `
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Medicine *</label>
+                        <input name="PrescriptionItems[${count}].MedicineName" class="form-control form-control-sm" placeholder="e.g. Amoxicillin" required />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">Dosage</label>
+                        <input name="PrescriptionItems[${count}].Dosage" class="form-control form-control-sm" placeholder="e.g. 250 mg" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">Frequency</label>
+                        <input name="PrescriptionItems[${count}].Frequency" class="form-control form-control-sm" placeholder="e.g. Twice daily" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">Duration</label>
+                        <input name="PrescriptionItems[${count}].Duration" class="form-control form-control-sm" placeholder="e.g. 7 days" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">Instructions</label>
+                        <input name="PrescriptionItems[${count}].Instructions" class="form-control form-control-sm" placeholder="With water" />
+                    </div>
+                    <div class="col-md-1 text-end pt-3">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-medicine-btn" title="Remove"><i class="bi bi-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(row);
+                bindRemoveButtons();
+            });
+
+            bindRemoveButtons();
+        });
+    </script>
+}

@@ -1,1 +1,115 @@
-@{ ViewData["Title"] = "Patient check-in"; } @await Html.PartialAsync("_ReceptionistPage")
+@model IReadOnlyList<HealthCare_Portal.Models.Appointment>
+@{
+    ViewData["Title"] = "Patient check-in queue";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Front desk workflow</span>
+                <h2>Patient check-in &amp; waiting room</h2>
+                <p>Process arriving patients and manage the live clinic consultation queue for today.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/Receptionist/Dashboard"><i class="bi bi-arrow-left"></i> Dashboard</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Receptionist navigation">
+                    <a href="/Receptionist/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Receptionist/PatientRegistration"><i class="bi bi-person-plus"></i> Register patient</a>
+                    <a href="/Receptionist/Patients"><i class="bi bi-people"></i> Patient list</a>
+                    <a href="/Receptionist/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Receptionist/AppointmentBooking"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+                    <a class="active" href="/Receptionist/CheckIn"><i class="bi bi-person-check"></i> Check-in queue</a>
+                    <a href="/Receptionist/AppointmentManagement"><i class="bi bi-kanban"></i> Queue management</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="dash-panel p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h5 mb-0"><i class="bi bi-people me-2 text-primary"></i>Today's Live Queue (@Model.Count)</h3>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">@DateTime.Today.ToString("dd MMMM yyyy")</span>
+                    </div>
+
+                    <div class="table-shell">
+                        <table class="staff-table admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Token</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Scheduled Time</th>
+                                    <th>Status</th>
+                                    <th>Front Desk Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model == null || Model.Count == 0)
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5 text-muted">No appointments in the queue today.</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    int token = 1;
+                                    @foreach (var appt in Model)
+                                    {
+                                        var statusClass = appt.AppointmentStatus.ToLowerInvariant().Replace(" ", "-");
+                                        var isAwaitingCheckIn = appt.AppointmentStatus == "Pending" || appt.AppointmentStatus == "Confirmed";
+                                        <tr>
+                                            <td><span class="badge bg-secondary">#@token.ToString("D2")</span></td>
+                                            <td>
+                                                <strong>@appt.PatientName</strong>
+                                                <small class="text-muted d-block">@appt.PatientCode</small>
+                                            </td>
+                                            <td>@appt.DoctorName</td>
+                                            <td>@DateTime.Today.Add(appt.StartTime).ToString("hh:mm tt")</td>
+                                            <td><span class="status-badge @statusClass">@appt.AppointmentStatus</span></td>
+                                            <td>
+                                                @if (isAwaitingCheckIn)
+                                                {
+                                                    <form method="post" action="/Receptionist/CheckIn" onsubmit="return confirm('Check in patient @appt.PatientName?');" style="display:inline;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="appointmentId" value="@appt.AppointmentId" />
+                                                        <button type="submit" class="btn btn-sm btn-primary">
+                                                            <i class="bi bi-check2-circle me-1"></i> Check-in
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small"><i class="bi bi-check2 text-success me-1"></i> In waiting room</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        token++;
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

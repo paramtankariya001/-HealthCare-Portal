@@ -1,0 +1,2 @@
+namespace HealthCare_Portal.Models;
+public sealed class DoctorSchedule { public int ScheduleId { get; set; } public int DoctorId { get; set; } public byte DayOfWeek { get; set; } public TimeSpan StartTime { get; set; } public TimeSpan EndTime { get; set; } public TimeSpan? BreakStartTime { get; set; } public TimeSpan? BreakEndTime { get; set; } public int SlotDurationMinutes { get; set; } public bool IsActive { get; set; } }

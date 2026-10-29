@@ -1,1 +1,84 @@
-@{ ViewData["Title"] = "Invoices"; } @await Html.PartialAsync("_ReceptionistPage")
+@model IEnumerable<HealthCare_Portal.Models.Bill>
+@{
+    ViewData["Title"] = "Patient Invoices";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Front Desk Billing</span>
+                <h2>Invoices</h2>
+                <p>Browse and print itemized patient invoices.</p>
+            </div>
+            <a class="btn btn-primary" href="/Receptionist/CreateBill">
+                <i class="bi bi-plus-circle"></i> Create New Bill
+            </a>
+        </div>
+
+        <div class="dash-panel">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-shell mt-3">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Patient</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var bill in Model)
+                            {
+                                var badgeClass = bill.PaymentStatus switch
+                                {
+                                    "Paid" => "completed",
+                                    "Partially Paid" => "available",
+                                    _ => "pending"
+                                };
+
+                                <tr>
+                                    <td><strong>@bill.InvoiceNumber</strong></td>
+                                    <td>@bill.PatientName</td>
+                                    <td>@bill.BillDate.ToString("dd MMM yyyy")</td>
+                                    <td>₹@bill.GrandTotal.ToString("N2")</td>
+                                    <td>₹@bill.PaidAmount.ToString("N2")</td>
+                                    <td>
+                                        @if (bill.BalanceAmount > 0)
+                                        {
+                                            <span class="text-danger fw-bold">₹@bill.BalanceAmount.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success">₹0.00</span>
+                                        }
+                                    </td>
+                                    <td><span class="status-badge @badgeClass">@bill.PaymentStatus</span></td>
+                                    <td>
+                                        <a href="/Receptionist/InvoiceDetails?id=@bill.BillId" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-printer"></i> View &amp; Print
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-file-earmark-text fs-1 d-block mb-3"></i>
+                    <h5>No invoices generated yet</h5>
+                </div>
+            }
+        </div>
+    </div>
+</section>

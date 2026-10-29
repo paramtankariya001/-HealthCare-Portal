@@ -1,0 +1,187 @@
+@model HealthCare_Portal.ViewModels.BillViewModel
+@{
+    ViewData["Title"] = "Generate Patient Bill";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Cash Desk</span>
+                <h2>Generate Patient Bill</h2>
+                <p>Create an itemized medical bill and invoice.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/Receptionist/Billing">
+                <i class="bi bi-arrow-left"></i> Back to Billing
+            </a>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="dash-panel">
+            <form asp-action="CreateBill" asp-controller="Receptionist" method="post" id="billForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="AppointmentId" />
+                <input type="hidden" asp-for="DoctorId" />
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="PatientId" class="form-label fw-bold">Patient ID *</label>
+                        <input asp-for="PatientId" class="form-control" type="number" required />
+                        <span asp-validation-for="PatientId" class="text-danger small"></span>
+                        @if (!string.IsNullOrWhiteSpace(Model.PatientName))
+                        {
+                            <small class="text-muted d-block mt-1">Patient: <strong>@Model.PatientName</strong> (@Model.PatientCode)</small>
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Attending Doctor / Source</label>
+                        <input type="text" class="form-control" value="@(string.IsNullOrWhiteSpace(Model.DoctorName) ? "Hospital Front Desk Service" : Model.DoctorName)" readonly />
+                        @if (Model.AppointmentId.HasValue)
+                        {
+                            <small class="text-muted d-block mt-1">Linked Appointment ID: #@Model.AppointmentId</small>
+                        }
+                    </div>
+                </div>
+
+                <div class="dash-panel-head border-top pt-3 mb-3">
+                    <div>
+                        <span class="eyebrow">Services &amp; Charges</span>
+                        <h4>Bill Line Items</h4>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
+                        <i class="bi bi-plus-circle"></i> Add Line Item
+                    </button>
+                </div>
+
+                <div class="table-shell mb-4">
+                    <table class="staff-table admin-table" id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 35%;">Service Name *</th>
+                                <th style="width: 30%;">Description / Notes</th>
+                                <th style="width: 12%;">Qty *</th>
+                                <th style="width: 15%;">Unit Price (₹) *</th>
+                                <th style="width: 8%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody">
+                            @for (int i = 0; i < (Model.BillItems.Count > 0 ? Model.BillItems.Count : 1); i++)
+                            {
+                                var item = i < Model.BillItems.Count ? Model.BillItems[i] : new HealthCare_Portal.ViewModels.BillItemViewModel();
+                                <tr>
+                                    <td>
+                                        <input name="BillItems[@i].ServiceName" value="@item.ServiceName" class="form-control item-service" placeholder="e.g. Doctor Consultation" required />
+                                    </td>
+                                    <td>
+                                        <input name="BillItems[@i].Description" value="@item.Description" class="form-control" placeholder="Clinical notes or service description" />
+                                    </td>
+                                    <td>
+                                        <input name="BillItems[@i].Quantity" type="number" value="@(item.Quantity > 0 ? item.Quantity : 1)" min="1" class="form-control item-qty" required />
+                                    </td>
+                                    <td>
+                                        <input name="BillItems[@i].UnitPrice" type="number" step="0.01" value="@item.UnitPrice" min="0" class="form-control item-price" required />
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" title="Remove"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row justify-content-end mb-4">
+                    <div class="col-md-5">
+                        <div class="card p-3 bg-light border-0">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <strong id="lblSubtotal">₹0.00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Discount (₹):</span>
+                                <input asp-for="Discount" type="number" step="0.01" min="0" class="form-control form-control-sm text-end w-50" id="inDiscount" />
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Tax (₹):</span>
+                                <input asp-for="Tax" type="number" step="0.01" min="0" class="form-control form-control-sm text-end w-50" id="inTax" />
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between fs-5 text-primary">
+                                <strong>Grand Total:</strong>
+                                <strong id="lblGrandTotal">₹0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="/Receptionist/Billing" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2-circle"></i> Save &amp; Generate Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    function recalculate() {
+        let subtotal = 0;
+        document.querySelectorAll('#itemsBody tr').forEach(row => {
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            subtotal += (qty * price);
+        });
+
+        const discount = parseFloat(document.getElementById('inDiscount').value) || 0;
+        const tax = parseFloat(document.getElementById('inTax').value) || 0;
+        const grandTotal = Math.max(0, subtotal - discount + tax);
+
+        document.getElementById('lblSubtotal').innerText = '₹' + subtotal.toFixed(2);
+        document.getElementById('lblGrandTotal').innerText = '₹' + grandTotal.toFixed(2);
+    }
+
+    document.getElementById('itemsBody').addEventListener('input', recalculate);
+    document.getElementById('inDiscount').addEventListener('input', recalculate);
+    document.getElementById('inTax').addEventListener('input', recalculate);
+
+    let itemIndex = document.querySelectorAll('#itemsBody tr').length;
+    document.getElementById('addItemBtn').addEventListener('click', function() {
+        const tbody = document.getElementById('itemsBody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input name="BillItems[${itemIndex}].ServiceName" class="form-control item-service" placeholder="e.g. Pharmacy / Lab Test" required /></td>
+            <td><input name="BillItems[${itemIndex}].Description" class="form-control" placeholder="Service description" /></td>
+            <td><input name="BillItems[${itemIndex}].Quantity" type="number" value="1" min="1" class="form-control item-qty" required /></td>
+            <td><input name="BillItems[${itemIndex}].UnitPrice" type="number" step="0.01" value="0.00" min="0" class="form-control item-price" required /></td>
+            <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-item-btn"><i class="bi bi-trash"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+        itemIndex++;
+        recalculate();
+    });
+
+    document.getElementById('itemsBody').addEventListener('click', function(e) {
+        if (e.target.closest('.remove-item-btn')) {
+            const rows = document.querySelectorAll('#itemsBody tr');
+            if (rows.length > 1) {
+                e.target.closest('tr').remove();
+                recalculate();
+            } else {
+                alert('At least one bill line item is required.');
+            }
+        }
+    });
+
+    recalculate();
+</script>
+}

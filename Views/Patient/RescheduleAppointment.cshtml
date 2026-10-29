@@ -1,0 +1,181 @@
+@model HealthCare_Portal.ViewModels.RescheduleAppointmentViewModel
+@{
+    ViewData["Title"] = "Reschedule appointment";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Patient portal</span>
+                <h2>Reschedule appointment</h2>
+                <p>Choose a new date and time for your visit (@Model.AppointmentCode).</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/Patient/Appointments"><i class="bi bi-arrow-left"></i> Back to appointments</a>
+        </div>
+
+        <div class="patient-dashboard">
+            <partial name="_Sidebar" />
+            <div class="dashboard-main">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                        <div asp-validation-summary="All" class="mb-0"></div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="dash-panel p-4">
+                    <!-- Current appointment banner -->
+                    <div class="p-3 mb-4 rounded bg-light border">
+                        <span class="eyebrow text-muted">Current Appointment</span>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <div>
+                                <h4 class="h6 mb-1 fw-bold">@Model.DoctorName</h4>
+                                <span class="text-muted small">@Model.DepartmentName @(!string.IsNullOrWhiteSpace(Model.SpecializationName) ? $"· {Model.SpecializationName}" : "")</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-secondary-subtle text-secondary px-2 py-1">
+                                    <i class="bi bi-calendar3 me-1"></i> @Model.CurrentDate.ToString("dd MMM yyyy") at @(DateTime.Today.Add(Model.CurrentStartTime).ToString("hh:mm tt"))
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" action="/Patient/RescheduleAppointment" id="rescheduleForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="AppointmentId" />
+                        <input type="hidden" asp-for="DoctorId" id="doctorIdInput" />
+                        <input type="hidden" asp-for="NewStartTime" id="newStartTimeInput" />
+                        <input type="hidden" asp-for="NewEndTime" id="newEndTimeInput" />
+
+                        <div class="mb-4">
+                            <label class="form-label" for="newAppointmentDate">Select New Date *</label>
+                            <input asp-for="NewDate" class="form-control" type="date" id="newAppointmentDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" value="@Model.NewDate.ToString("yyyy-MM-dd")" required />
+                            <span asp-validation-for="NewDate" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Slots Section -->
+                        <div class="mb-4">
+                            <div class="slot-label d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0 fw-bold">Select New Available Time Slot *</label>
+                                <span class="small text-muted" id="slotStatusText">Click a slot to select</span>
+                            </div>
+
+                            <div class="slots" id="slotsContainer" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:10px;">
+                                @if (Model.AvailableSlots.Count > 0)
+                                {
+                                    @foreach (var slot in Model.AvailableSlots)
+                                    {
+                                        var isSelected = Model.NewStartTime == slot.SlotStart;
+                                        <button type="button" class="slot btn btn-outline-primary @(isSelected ? "active" : "")" data-start="@slot.SlotStart.ToString(@"hh\:mm\:ss")" data-end="@slot.SlotEnd.ToString(@"hh\:mm\:ss")">
+                                            @slot.FormattedSlot
+                                        </button>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-muted p-3 bg-light rounded text-center w-100 col-span-full">No available slots on this date. Doctor may not practice on this weekday. Please choose another date.</div>
+                                }
+                            </div>
+                            <span asp-validation-for="NewStartTime" class="text-danger small mt-1 d-block" id="slotValidationError"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a class="btn btn-link text-link" href="/Patient/Appointments">Keep current appointment</a>
+                            <button class="btn btn-primary px-4" type="submit" id="submitRescheduleBtn">
+                                <i class="bi bi-clock-history me-1"></i> Confirm Reschedule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dateInput = document.getElementById('newAppointmentDate');
+            const docId = document.getElementById('doctorIdInput').value;
+            const startTimeInput = document.getElementById('newStartTimeInput');
+            const endTimeInput = document.getElementById('newEndTimeInput');
+            const slotsContainer = document.getElementById('slotsContainer');
+            const slotStatusText = document.getElementById('slotStatusText');
+
+            function bindSlotClicks() {
+                const slotButtons = slotsContainer.querySelectorAll('.slot:not(.disabled)');
+                slotButtons.forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        slotButtons.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        startTimeInput.value = this.getAttribute('data-start');
+                        endTimeInput.value = this.getAttribute('data-end');
+                        document.getElementById('slotValidationError').innerText = '';
+                    });
+                });
+            }
+
+            async function loadSlots() {
+                const dateVal = dateInput.value;
+                if (!dateVal) return;
+
+                slotStatusText.innerText = 'Loading available slots...';
+                slotsContainer.innerHTML = '<div class="text-muted p-3 bg-light rounded text-center w-100"><span class="spinner-border spinner-border-sm me-2"></span>Loading available slots...</div>';
+
+                try {
+                    const res = await fetch(`/Patient/GetAvailableSlots?doctorId=${docId}&date=${dateVal}`);
+                    const slots = await res.json();
+
+                    if (!slots || slots.length === 0) {
+                        slotsContainer.innerHTML = '<div class="text-muted p-3 bg-light rounded text-center w-100">No available slots on this date. Please try another date.</div>';
+                        slotStatusText.innerText = '0 slots available';
+                        startTimeInput.value = '';
+                        endTimeInput.value = '';
+                        return;
+                    }
+
+                    slotStatusText.innerText = `${slots.length} slot(s) available. Click to select:`;
+                    slotsContainer.innerHTML = '';
+                    slots.forEach(slot => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'slot btn btn-outline-primary';
+                        btn.setAttribute('data-start', slot.slotStart);
+                        btn.setAttribute('data-end', slot.slotEnd);
+                        btn.textContent = slot.formatted;
+                        if (startTimeInput.value === slot.slotStart) {
+                            btn.classList.add('active');
+                        }
+                        slotsContainer.appendChild(btn);
+                    });
+                    bindSlotClicks();
+                } catch (err) {
+                    slotsContainer.innerHTML = '<div class="text-danger p-3 bg-light rounded text-center w-100">Failed to load slots. Please check your connection and try again.</div>';
+                    slotStatusText.innerText = 'Error loading slots';
+                }
+            }
+
+            dateInput.addEventListener('change', loadSlots);
+            bindSlotClicks();
+
+            document.getElementById('rescheduleForm').addEventListener('submit', function (e) {
+                if (!startTimeInput.value) {
+                    e.preventDefault();
+                    document.getElementById('slotValidationError').innerText = 'Please select a new time slot before confirming.';
+                }
+            });
+        });
+    </script>
+}

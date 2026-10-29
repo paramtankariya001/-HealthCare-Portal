@@ -1,1 +1,120 @@
-@{ ViewData["Title"] = "Bills"; } @await Html.PartialAsync("_PatientPage")
+@model IEnumerable<HealthCare_Portal.Models.Bill>
+@{
+    ViewData["Title"] = "My Bills & Invoices";
+    var bills = (Model ?? ViewData["Bills"] as IEnumerable<HealthCare_Portal.Models.Bill>) ?? Array.Empty<HealthCare_Portal.Models.Bill>();
+    var totalBilled = bills.Sum(b => b.GrandTotal);
+    var totalPaid = bills.Sum(b => b.PaidAmount);
+    var totalOutstanding = bills.Sum(b => b.BalanceAmount);
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Patient Billing Portal</span>
+                <h2>My Bills &amp; Receipts</h2>
+                <p>Track your medical statements, payments, and invoices.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/Patient/Dashboard">
+                <i class="bi bi-grid-1x2"></i> Dashboard
+            </a>
+        </div>
+
+        <div class="dashboard-stats mb-4">
+            <div class="dash-stat">
+                <span class="dash-icon mint"><i class="bi bi-receipt"></i></span>
+                <div>
+                    <small>Total Billed</small>
+                    <strong>₹@totalBilled.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="dash-stat">
+                <span class="dash-icon lilac"><i class="bi bi-check2-circle"></i></span>
+                <div>
+                    <small>Paid Amount</small>
+                    <strong>₹@totalPaid.ToString("N2")</strong>
+                </div>
+            </div>
+            <div class="dash-stat">
+                <span class="dash-icon yellow"><i class="bi bi-hourglass-split"></i></span>
+                <div>
+                    <small>Outstanding Due</small>
+                    <strong>₹@totalOutstanding.ToString("N2")</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-panel">
+            <div class="dash-panel-head">
+                <div>
+                    <span class="eyebrow">Statements</span>
+                    <h3>Billing History</h3>
+                </div>
+            </div>
+
+            @if (bills.Any())
+            {
+                <div class="table-shell mt-3">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Doctor / Service</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Balance Due</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var bill in bills)
+                            {
+                                var badgeClass = bill.PaymentStatus switch
+                                {
+                                    "Paid" => "completed",
+                                    "Partially Paid" => "available",
+                                    _ => "pending"
+                                };
+
+                                <tr>
+                                    <td><strong>@bill.InvoiceNumber</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(bill.DoctorName) ? "Clinical Consultation" : bill.DoctorName)</td>
+                                    <td>@bill.BillDate.ToString("dd MMM yyyy")</td>
+                                    <td><strong>₹@bill.GrandTotal.ToString("N2")</strong></td>
+                                    <td>₹@bill.PaidAmount.ToString("N2")</td>
+                                    <td>
+                                        @if (bill.BalanceAmount > 0)
+                                        {
+                                            <span class="text-danger fw-bold">₹@bill.BalanceAmount.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success">₹0.00</span>
+                                        }
+                                    </td>
+                                    <td><span class="status-badge @badgeClass">@bill.PaymentStatus</span></td>
+                                    <td>
+                                        <a href="/Patient/InvoiceDetails/@bill.BillId" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-receipt"></i> View Invoice
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-receipt fs-1 d-block mb-3"></i>
+                    <h5>No billing records found</h5>
+                    <p>You have no current or past bills on record.</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>

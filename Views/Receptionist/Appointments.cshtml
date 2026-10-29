@@ -1,1 +1,127 @@
-@{ ViewData["Title"] = "Appointments"; } @await Html.PartialAsync("_FrontDeskPage")
+@model IReadOnlyList<HealthCare_Portal.Models.Appointment>
+@{
+    ViewData["Title"] = "Front desk appointments";
+    var selectedDate = ViewData["SelectedDate"] as DateTime?;
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Front desk workflow</span>
+                <h2>Front desk appointments</h2>
+                <p>Filter, view, and process clinic appointments.</p>
+            </div>
+            <a class="btn btn-primary" href="/Receptionist/AppointmentBooking"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Receptionist navigation">
+                    <a href="/Receptionist/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Receptionist/PatientRegistration"><i class="bi bi-person-plus"></i> Register patient</a>
+                    <a href="/Receptionist/Patients"><i class="bi bi-people"></i> Patient list</a>
+                    <a class="active" href="/Receptionist/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Receptionist/AppointmentBooking"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+                    <a href="/Receptionist/CheckIn"><i class="bi bi-person-check"></i> Check-in queue</a>
+                    <a href="/Receptionist/AppointmentManagement"><i class="bi bi-kanban"></i> Queue management</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <form method="get" action="/Receptionist/Appointments" class="filter-bar mb-3">
+                    <label class="form-label mb-0 align-self-center fw-bold me-2">Filter Date:</label>
+                    <input class="form-control" name="date" type="date" value="@(selectedDate.HasValue ? selectedDate.Value.ToString("yyyy-MM-dd") : "")" />
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+                    @if (selectedDate.HasValue)
+                    {
+                        <a class="btn btn-link text-link" href="/Receptionist/Appointments">Show all dates</a>
+                    }
+                </form>
+
+                <div class="table-shell">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Fee</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model == null || Model.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">No appointments found.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var a in Model)
+                                {
+                                    var statusClass = a.AppointmentStatus.ToLowerInvariant().Replace(" ", "-");
+                                    <tr>
+                                        <td><strong>@a.AppointmentCode</strong></td>
+                                        <td>
+                                            <strong>@a.PatientName</strong>
+                                            @if (!string.IsNullOrWhiteSpace(a.PatientCode))
+                                            {
+                                                <small class="text-muted d-block">@a.PatientCode</small>
+                                            }
+                                        </td>
+                                        <td>@a.DoctorName</td>
+                                        <td>@a.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                        <td>@DateTime.Today.Add(a.StartTime).ToString("hh:mm tt")</td>
+                                        <td>₹@a.ConsultationFee.ToString("N0")</td>
+                                        <td><span class="status-badge @statusClass">@a.AppointmentStatus</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <a class="table-action" href="/Receptionist/AppointmentDetails/@a.AppointmentId">Details</a>
+                                                @if (a.AppointmentStatus == "Pending" || a.AppointmentStatus == "Confirmed")
+                                                {
+                                                    <form method="post" action="/Receptionist/CheckIn" style="display:inline;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="appointmentId" value="@a.AppointmentId" />
+                                                        <button type="submit" class="table-action primary-action" style="border:none;background:none;cursor:pointer;">Check-in</button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model != null && Model.Count > 0)
+                {
+                    <div class="table-footer mt-2">
+                        <span>Showing @Model.Count record(s)</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

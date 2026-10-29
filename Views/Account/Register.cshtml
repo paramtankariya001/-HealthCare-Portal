@@ -1,1 +1,3 @@
-@{ ViewData["Title"] = "Create your account"; } @await Html.PartialAsync("_AccountPage")
+@model HealthCare_Portal.ViewModels.RegisterPatientViewModel
+@{ ViewData["Title"] = "Create your account"; }
+@await Html.PartialAsync("_AccountPage", Model)

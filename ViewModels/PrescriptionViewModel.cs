@@ -1,0 +1,3 @@
+using System.ComponentModel.DataAnnotations; namespace HealthCare_Portal.ViewModels;
+public sealed class PrescriptionViewModel { [Range(1,long.MaxValue)] public long AppointmentId { get; set; } [StringLength(2000)] public string? Diagnosis { get; set; } [StringLength(3000)] public string? Instructions { get; set; } public DateTime? FollowUpDate { get; set; } public List<PrescriptionItemViewModel> PrescriptionItems { get; set; } = []; }
+public sealed class PrescriptionItemViewModel { [Required] public string MedicineName { get; set; } = ""; public string? Dosage { get; set; } public string? Frequency { get; set; } public string? Duration { get; set; } public string? Instructions { get; set; } }

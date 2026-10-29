@@ -1,1 +1,107 @@
-@{ ViewData["Title"] = "Patient list"; } @await Html.PartialAsync("_ReceptionistPage")
+@model IReadOnlyList<HealthCare_Portal.Models.Patient>
+@{
+    ViewData["Title"] = "Patient directory";
+    var search = ViewData["Search"] as string;
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Front desk workflow</span>
+                <h2>Patient directory</h2>
+                <p>Search, register, and manage clinic patient records.</p>
+            </div>
+            <a class="btn btn-primary" href="/Receptionist/PatientRegistration"><i class="bi bi-person-plus"></i> Register patient</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Receptionist navigation">
+                    <a href="/Receptionist/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Receptionist/PatientRegistration"><i class="bi bi-person-plus"></i> Register patient</a>
+                    <a class="active" href="/Receptionist/Patients"><i class="bi bi-people"></i> Patient list</a>
+                    <a href="/Receptionist/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Receptionist/AppointmentBooking"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+                    <a href="/Receptionist/CheckIn"><i class="bi bi-person-check"></i> Check-in queue</a>
+                    <a href="/Receptionist/AppointmentManagement"><i class="bi bi-kanban"></i> Queue management</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <form method="get" action="/Receptionist/Patients" class="filter-bar mb-3">
+                    <input class="form-control" name="search" value="@search" placeholder="Search by patient name, patient code, phone, or email" />
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+                    @if (!string.IsNullOrWhiteSpace(search))
+                    {
+                        <a class="btn btn-link text-link" href="/Receptionist/Patients">Reset</a>
+                    }
+                </form>
+
+                <div class="table-shell">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Patient ID</th>
+                                <th>Name</th>
+                                <th>Gender</th>
+                                <th>Mobile</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model == null || Model.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No patient records found.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var p in Model)
+                                {
+                                    <tr>
+                                        <td><strong>@p.PatientCode</strong></td>
+                                        <td><strong>@p.FirstName @p.LastName</strong></td>
+                                        <td>@p.Gender</td>
+                                        <td>@p.Phone</td>
+                                        <td>@(string.IsNullOrWhiteSpace(p.Email) ? "-" : p.Email)</td>
+                                        <td>
+                                            <span class="status-badge @(p.IsActive ? "confirmed" : "cancelled")">
+                                                @(p.IsActive ? "Active" : "Inactive")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <a class="table-action" href="/Receptionist/PatientDetails/@p.PatientId">Details</a>
+                                                <a class="table-action primary-action" href="/Receptionist/AppointmentBooking?patientId=@p.PatientId">Book visit</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model != null && Model.Count > 0)
+                {
+                    <div class="table-footer mt-2">
+                        <span>Showing @Model.Count patient record(s)</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

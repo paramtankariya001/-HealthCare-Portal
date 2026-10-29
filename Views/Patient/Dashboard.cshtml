@@ -1,1 +1,2 @@
-@{ ViewData["Title"] = "Dashboard"; } @await Html.PartialAsync("_PatientPage")
+@model HealthCare_Portal.ViewModels.PatientDashboardViewModel
+@{ ViewData["Title"] = "Dashboard"; } @await Html.PartialAsync("_PatientPage", Model)

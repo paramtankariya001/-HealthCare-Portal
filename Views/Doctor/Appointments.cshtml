@@ -1,1 +1,109 @@
-@{ ViewData["Title"] = "Doctor appointments"; } @await Html.PartialAsync("_DoctorPage")
+@model IReadOnlyList<HealthCare_Portal.Models.Appointment>
+@{
+    ViewData["Title"] = "Assigned appointments";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Doctor portal</span>
+                <h2>Doctor appointments</h2>
+                <p>Manage appointments assigned to your clinic practice.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/Doctor/Dashboard"><i class="bi bi-arrow-left"></i> Dashboard</a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a class="active" href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="table-shell">
+                    <table class="staff-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Patient Name</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model == null || Model.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted">No appointments found.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var appt in Model)
+                                {
+                                    var statusClass = appt.AppointmentStatus.ToLowerInvariant().Replace(" ", "-");
+                                    <tr>
+                                        <td><strong>@appt.AppointmentCode</strong></td>
+                                        <td>
+                                            <strong>@appt.PatientName</strong>
+                                            @if (!string.IsNullOrWhiteSpace(appt.PatientCode))
+                                            {
+                                                <small class="text-muted d-block">@appt.PatientCode</small>
+                                            }
+                                        </td>
+                                        <td>@appt.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                        <td>@DateTime.Today.Add(appt.StartTime).ToString("hh:mm tt")</td>
+                                        <td>@(string.IsNullOrWhiteSpace(appt.ReasonForVisit) ? "-" : appt.ReasonForVisit)</td>
+                                        <td><span class="status-badge @statusClass">@appt.AppointmentStatus</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <a class="table-action" href="/Doctor/AppointmentDetails/@appt.AppointmentId">Details</a>
+                                                @if (appt.AppointmentStatus != "Cancelled" && appt.AppointmentStatus != "Completed")
+                                                {
+                                                    <a class="table-action primary-action" href="/Doctor/Consultation?appointmentId=@appt.AppointmentId">Consult</a>
+                                                }
+                                                <a class="table-action" href="/Doctor/PatientDetails/@appt.PatientId">Patient</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model != null && Model.Count > 0)
+                {
+                    <div class="table-footer mt-2">
+                        <span>Showing @Model.Count record(s)</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

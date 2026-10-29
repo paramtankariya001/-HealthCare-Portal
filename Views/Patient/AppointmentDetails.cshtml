@@ -1,1 +1,104 @@
-@{ ViewData["Title"] = "Appointment details"; } @await Html.PartialAsync("_PatientPage")
+@model HealthCare_Portal.Models.Appointment
+@{
+    ViewData["Title"] = $"Appointment {Model.AppointmentCode}";
+    var isEligible = !Model.AppointmentStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase) &&
+                     !Model.AppointmentStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase);
+
+    var statusClass = Model.AppointmentStatus.ToLowerInvariant() switch
+    {
+        "confirmed" => "confirmed",
+        "completed" => "confirmed",
+        "pending" => "pending",
+        "cancelled" => "cancelled",
+        _ => "pending"
+    };
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Appointment details</span>
+                <h2>@Model.AppointmentCode</h2>
+                <p>Scheduled visit with @(Model.DoctorName ?? "Doctor")</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="/Patient/Appointments"><i class="bi bi-arrow-left"></i> Back to appointments</a>
+                @if (isEligible)
+                {
+                    <a class="btn btn-primary" href="/Patient/RescheduleAppointment/@Model.AppointmentId"><i class="bi bi-clock-history"></i> Reschedule</a>
+                }
+            </div>
+        </div>
+
+        <div class="patient-dashboard">
+            <partial name="_Sidebar" />
+            <div class="dashboard-main">
+                <div class="dash-panel p-4">
+                    <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-4">
+                        <div>
+                            <span class="text-muted small">Reference Code</span>
+                            <h3 class="mb-0">@Model.AppointmentCode</h3>
+                        </div>
+                        <span class="status-badge @statusClass fs-6 px-3 py-1">@Model.AppointmentStatus</span>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Healthcare Provider</small>
+                                <strong>@(Model.DoctorName ?? "Dr. Specialist")</strong>
+                                <span class="d-block small text-muted">@(Model.DepartmentName ?? "Department") &middot; @(Model.SpecializationName ?? "Specialist")</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Appointment Date &amp; Time</small>
+                                <strong>@Model.AppointmentDate.ToString("dddd, dd MMMM yyyy")</strong>
+                                <span class="d-block small text-muted">@(DateTime.Today.Add(Model.StartTime).ToString("hh:mm tt")) - @(DateTime.Today.Add(Model.EndTime).ToString("hh:mm tt"))</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Consultation Fee</small>
+                                <strong class="text-success fs-5">₹@Model.ConsultationFee.ToString("N0")</strong>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Booking Source</small>
+                                <strong>@Model.BookingSource Portal</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4 class="h6 text-muted text-uppercase fw-bold mb-2">Reason for Visit</h4>
+                        <div class="p-3 border rounded bg-white">
+                            <p class="mb-0 text-secondary">@(string.IsNullOrWhiteSpace(Model.ReasonForVisit) ? "General consultation" : Model.ReasonForVisit)</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">
+                            <i class="bi bi-info-circle me-1"></i> For cancellations within 2 hours of visit, please contact the clinic reception directly.
+                        </span>
+                        @if (isEligible)
+                        {
+                            <form method="post" action="/Patient/CancelAppointment/@Model.AppointmentId" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-x-circle me-1"></i> Cancel Appointment
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

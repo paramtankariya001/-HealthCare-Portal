@@ -1,1 +1,225 @@
 @media (max-width:767px) { .role-page .dashboard-sidebar { position:static; } .role-page .dashboard-nav { display:flex; flex-wrap:wrap; } .role-page .dashboard-nav a { flex:1 0 45%; } }
+
+/* Interaction polish: preserves the existing palette, dimensions, and component structure. */
+:where(.btn, button, .table-action, .nav-link, .dashboard-nav a, .staff-nav a, .admin-nav a, .quick-actions a, .role-tab, .icon-button) {
+    -webkit-tap-highlight-color: transparent;
+}
+
+:where(.btn, button, .table-action, .icon-button):focus-visible,
+:where(a, select, input, textarea):focus-visible {
+    outline: 3px solid rgba(12, 143, 132, .28);
+    outline-offset: 2px;
+}
+
+:where(.btn, button, .icon-button) {
+    transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease,
+        border-color .2s ease, color .2s ease, opacity .2s ease;
+}
+
+:where(.btn, .icon-button):not(:disabled):not(.disabled):hover {
+    box-shadow: 0 6px 16px rgba(32, 73, 68, .12);
+}
+
+:where(.btn, .icon-button):not(:disabled):not(.disabled):active {
+    box-shadow: 0 2px 7px rgba(32, 73, 68, .1);
+    transform: translateY(1px);
+}
+
+.btn-secondary:hover,
+.btn-outline-secondary:hover,
+.btn-light:hover,
+.icon-button:hover {
+    transform: translateY(-1px);
+}
+
+.btn-danger:hover,
+.btn-outline-danger:hover {
+    box-shadow: 0 6px 16px rgba(180, 77, 68, .16);
+    transform: translateY(-1px);
+}
+
+:where(.btn, .icon-button):disabled,
+:where(.btn, .icon-button).disabled {
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: .58;
+    transform: none;
+}
+
+@media (hover: hover) {
+    :where(.dash-stat, .portal-stat, .service-card, .doctor-card, .quick-actions a, .record-card) {
+        transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+    }
+
+    :where(.dash-stat, .portal-stat, .service-card, .doctor-card, .quick-actions a, .record-card):hover {
+        border-color: #c9dfda;
+        box-shadow: 0 12px 28px rgba(32, 73, 68, .1);
+        transform: translateY(-2px);
+    }
+
+    :where(.dashboard-nav a, .staff-nav a, .admin-nav a, .nav-link, .table-action):hover {
+        transition: color .2s ease, background-color .2s ease, padding-left .2s ease;
+    }
+
+    :where(.dashboard-nav a, .staff-nav a, .admin-nav a):hover {
+        padding-left: 12px;
+    }
+}
+
+.table-shell,
+.data-table-wrap,
+.weekly-calendar,
+.month-calendar {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-color: #b8d8d1 transparent;
+    scrollbar-width: thin;
+}
+
+img,
+svg,
+canvas {
+    max-width: 100%;
+}
+
+input,
+select,
+textarea,
+.form-control,
+.form-select {
+    max-width: 100%;
+}
+
+@media (max-width: 767px) {
+    body {
+        overflow-x: hidden;
+    }
+
+    .hero-grid,
+    .about-grid,
+    .booking-grid,
+    .contact-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hero-grid > *,
+    .about-grid > *,
+    .booking-grid > *,
+    .contact-grid > * {
+        min-width: 0;
+    }
+
+    .contact-form {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .portal-nav .container-xl {
+        align-items: center;
+        min-width: 0;
+    }
+
+    .portal-nav .navbar-brand {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .portal-nav .nav-actions {
+        align-items: stretch !important;
+        flex-direction: column;
+        gap: 8px !important;
+        padding: 10px 0 4px;
+    }
+
+    .portal-nav .nav-actions .btn,
+    .portal-nav .nav-actions .sign-in-link {
+        text-align: center;
+        width: 100%;
+    }
+
+    .dashboard-nav a,
+    .staff-nav a,
+    .admin-nav a {
+        min-height: 40px;
+    }
+
+    .dashboard-main,
+    .staff-main,
+    .admin-main {
+        min-width: 0;
+    }
+
+    .portal-heading .btn,
+    .workspace-heading > .btn,
+    .workspace-heading .action-group {
+        max-width: 100%;
+    }
+
+    .form-actions .btn {
+        min-height: 42px;
+    }
+
+    .table-shell,
+    .data-table-wrap {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .staff-table,
+    .admin-table {
+        max-width: none;
+    }
+
+    .modal-dialog {
+        margin: .75rem;
+        max-width: calc(100% - 1.5rem);
+    }
+
+    .modal-body {
+        max-height: calc(100vh - 10rem);
+        overflow-y: auto;
+    }
+
+    .toast-container {
+        left: 0;
+        max-width: 100%;
+        padding: 12px !important;
+        right: 0;
+    }
+
+    .toast-container .toast {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .brand-lockup {
+        font-size: .94rem;
+    }
+
+    .brand-mark {
+        height: 31px;
+        width: 31px;
+    }
+
+    .dashboard-nav a,
+    .staff-nav a {
+        flex-basis: 100%;
+    }
+
+    .portal-heading h2,
+    .workspace-heading h2 {
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}

@@ -1,1 +1,98 @@
-@{ ViewData["Title"] = "Test details"; } @await Html.PartialAsync("_ClinicalPage")
+@model HealthCare_Portal.Models.MedicalTest
+@{
+    ViewData["Title"] = $"Test {Model.TestCode}";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Diagnostic test</span>
+                <h2>@Model.TestName</h2>
+                <p>Test Code: @Model.TestCode &middot; Patient: @Model.PatientName (@Model.PatientCode)</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/Doctor/MedicalTests"><i class="bi bi-arrow-left"></i> All tests</a>
+        </div>
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Doctor navigation">
+                    <a href="/Doctor/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Doctor/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Doctor/PrescriptionHistory"><i class="bi bi-capsule"></i> Prescriptions</a>
+                    <a class="active" href="/Doctor/MedicalTests"><i class="bi bi-eyedropper"></i> Medical tests</a>
+                    <a href="/Doctor/Profile"><i class="bi bi-person-badge"></i> Profile</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="dash-panel p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-3">
+                        <div>
+                            <span class="text-muted small">Request Status</span>
+                            <h4 class="mb-0">@Model.TestName</h4>
+                        </div>
+                        <span class="status-badge @Model.TestStatus.ToLowerInvariant().Replace(" ", "-") fs-6 px-3 py-1">@Model.TestStatus</span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Patient</small>
+                                <strong>@Model.PatientName</strong>
+                                <span class="d-block small text-muted">@Model.PatientCode</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Test Date</small>
+                                <strong>@Model.TestDate.ToString("dd MMM yyyy")</strong>
+                                <span class="d-block small text-muted">Priority: @Model.Priority</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Ordering Provider</small>
+                                <strong>@Model.DoctorName</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Instructions))
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Clinical Instructions</small>
+                            <p class="text-secondary p-3 bg-light rounded mb-0">@Model.Instructions</p>
+                        </div>
+                    }
+                </div>
+
+                @if (Model.Report != null)
+                {
+                    <div class="dash-panel p-4">
+                        <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3">
+                            <h4 class="h5 mb-0 text-success"><i class="bi bi-file-earmark-check me-2"></i>Diagnostic Report</h4>
+                            <small class="text-muted">@(Model.Report.ReportDate.HasValue ? Model.Report.ReportDate.Value.ToString("dd MMM yyyy") : "")</small>
+                        </div>
+                        <div class="mb-3">
+                            <h5 class="h6 fw-bold">@(Model.Report.ReportTitle ?? "Laboratory Findings")</h5>
+                            <p class="p-3 bg-light rounded text-secondary">@(Model.Report.ResultSummary ?? "No summary text available.")</p>
+                            @if (!string.IsNullOrWhiteSpace(Model.Report.ReportedBy))
+                            {
+                                <small class="text-muted">Verified &amp; Reported by: <strong>@Model.Report.ReportedBy</strong></small>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="dash-panel p-4 text-center text-muted">
+                        <i class="bi bi-hourglass-split display-6 d-block mb-2 text-muted"></i>
+                        Diagnostic results and laboratory report are pending for this request.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

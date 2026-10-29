@@ -1,1 +1,102 @@
-@{ ViewData["Title"] = "Patient details"; } @await Html.PartialAsync("_FrontDeskPage")
+@model HealthCare_Portal.Models.Patient
+@{
+    ViewData["Title"] = $"Patient {Model.FirstName} {Model.LastName}";
+}
+
+<section class="role-page dashboard-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="portal-heading">
+            <div>
+                <span class="eyebrow">Front desk workflow</span>
+                <h2>@Model.FirstName @Model.LastName</h2>
+                <p>Patient ID: @Model.PatientCode &middot; Phone: @Model.Phone</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="/Receptionist/Patients"><i class="bi bi-arrow-left"></i> All patients</a>
+                <a class="btn btn-primary" href="/Receptionist/AppointmentBooking?patientId=@Model.PatientId"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+            </div>
+        </div>
+
+        <div class="patient-dashboard">
+            <aside class="dashboard-sidebar">
+                <nav class="dashboard-nav" aria-label="Receptionist navigation">
+                    <a href="/Receptionist/Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                    <a href="/Receptionist/PatientRegistration"><i class="bi bi-person-plus"></i> Register patient</a>
+                    <a class="active" href="/Receptionist/Patients"><i class="bi bi-people"></i> Patient list</a>
+                    <a href="/Receptionist/Appointments"><i class="bi bi-calendar2-week"></i> Appointments</a>
+                    <a href="/Receptionist/AppointmentBooking"><i class="bi bi-calendar-plus"></i> Book appointment</a>
+                    <a href="/Receptionist/CheckIn"><i class="bi bi-person-check"></i> Check-in queue</a>
+                    <a href="/Receptionist/AppointmentManagement"><i class="bi bi-kanban"></i> Queue management</a>
+                </nav>
+            </aside>
+
+            <div class="dashboard-main">
+                <div class="dash-panel p-4">
+                    <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-3">
+                        <h4 class="mb-0">Patient File: @Model.PatientCode</h4>
+                        <span class="status-badge @(Model.IsActive ? "confirmed" : "cancelled") fs-6 px-3 py-1">
+                            @(Model.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Full Name</small>
+                                <strong>@Model.FirstName @Model.LastName</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Gender</small>
+                                <strong>@Model.Gender</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Date of Birth</small>
+                                <strong>@Model.DateOfBirth.ToString("dd MMM yyyy")</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Blood Group</small>
+                                <strong>@(string.IsNullOrWhiteSpace(Model.BloodGroup) ? "Unspecified" : Model.BloodGroup)</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Mobile Phone</small>
+                                <strong>@Model.Phone</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Email Address</small>
+                                <strong>@(string.IsNullOrWhiteSpace(Model.Email) ? "-" : Model.Email)</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted d-block">Emergency Contact</small>
+                                <strong>@(string.IsNullOrWhiteSpace(Model.EmergencyContactName) ? "-" : Model.EmergencyContactName)</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <small class="text-muted d-block fw-bold mb-1">Residential Address</small>
+                        <p class="p-3 bg-light rounded text-secondary mb-0">@(string.IsNullOrWhiteSpace(Model.Address) ? "No address specified." : Model.Address)</p>
+                    </div>
+
+                    <div class="pt-3 border-top">
+                        <a class="btn btn-primary" href="/Receptionist/AppointmentBooking?patientId=@Model.PatientId">
+                            <i class="bi bi-calendar2-plus me-1"></i> Schedule New Appointment
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

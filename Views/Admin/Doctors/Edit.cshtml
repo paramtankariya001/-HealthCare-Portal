@@ -1,1 +1,135 @@
-@{ ViewData["Title"] = "Edit doctor"; } @await Html.PartialAsync("_AdminModulePage")
+@model HealthCare_Portal.ViewModels.DoctorFormViewModel
+@{
+    ViewData["Title"] = "Edit doctor";
+}
+
+<section class="dashboard-page admin-module-page">
+    <div class="container-xl">
+        <partial name="_Breadcrumb" />
+        <div class="workspace-heading">
+            <div>
+                <span class="eyebrow">Admin portal</span>
+                <h2>Edit doctor: Dr. @Model.FirstName @Model.LastName</h2>
+                <p>Update doctor details, contact information, qualification, and fees.</p>
+            </div>
+            <div class="action-group">
+                <a class="btn btn-outline-secondary" href="/Admin/Doctors"><i class="bi bi-arrow-left"></i> Back to doctors</a>
+            </div>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div asp-validation-summary="All" class="mb-0"></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="staff-panel mt-3">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">Doctor Code: <strong>@Model.DoctorCode</strong></span>
+                    <h3>Update profile</h3>
+                </div>
+            </div>
+            <form method="post" action="/Admin/Doctors/Edit/@Model.DoctorId">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="DoctorId" />
+                <input type="hidden" asp-for="DoctorCode" />
+                <div class="form-grid two">
+                    <label>
+                        First name *
+                        <input asp-for="FirstName" class="form-control" required maxlength="100" />
+                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Last name
+                        <input asp-for="LastName" class="form-control" maxlength="100" />
+                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Email address *
+                        <input asp-for="Email" class="form-control" type="email" required maxlength="150" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Phone number *
+                        <input asp-for="Phone" class="form-control" required maxlength="20" />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Gender *
+                        <select asp-for="Gender" class="form-select" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Department *
+                        <select asp-for="DepartmentId" class="form-select" id="departmentSelect" asp-items="Model.DepartmentList" required>
+                            <option value="">Select department</option>
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Specialization *
+                        <select asp-for="SpecializationId" class="form-select" id="specializationSelect" asp-items="Model.SpecializationList" required>
+                            <option value="">Select specialization</option>
+                        </select>
+                        <span asp-validation-for="SpecializationId" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Qualification *
+                        <input asp-for="Qualification" class="form-control" required maxlength="250" />
+                        <span asp-validation-for="Qualification" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Experience (Years) *
+                        <input asp-for="ExperienceYears" class="form-control" type="number" min="0" max="70" required />
+                        <span asp-validation-for="ExperienceYears" class="text-danger small"></span>
+                    </label>
+                    <label>
+                        Consultation fee (₹) *
+                        <input asp-for="ConsultationFee" class="form-control" type="number" step="0.01" min="0" required />
+                        <span asp-validation-for="ConsultationFee" class="text-danger small"></span>
+                    </label>
+                </div>
+                <label class="wide-label mt-3">
+                    About doctor / Bio
+                    <textarea asp-for="AboutDoctor" class="form-control" rows="3"></textarea>
+                </label>
+                <div class="form-actions mt-4">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Update Doctor</button>
+                    <a class="btn btn-link text-link" href="/Admin/Doctors">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('departmentSelect')?.addEventListener('change', async function () {
+            const deptId = this.value;
+            const specSelect = document.getElementById('specializationSelect');
+            if (!specSelect) return;
+            specSelect.innerHTML = '<option value="">Loading specializations...</option>';
+            try {
+                const res = await fetch(`/Admin/Doctors/GetSpecializations?departmentId=${deptId}`);
+                const data = await res.json();
+                specSelect.innerHTML = '<option value="">Select specialization</option>';
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.value;
+                    opt.textContent = item.text;
+                    specSelect.appendChild(opt);
+                });
+            } catch {
+                specSelect.innerHTML = '<option value="">Select specialization</option>';
+            }
+        });
+    </script>
+}

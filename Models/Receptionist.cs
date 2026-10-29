@@ -1,0 +1,2 @@
+namespace HealthCare_Portal.Models;
+public sealed class Receptionist { public int ReceptionistId { get; set; } public int? UserId { get; set; } public string? Username { get; set; } public string EmployeeCode { get; set; } = ""; public string FirstName { get; set; } = ""; public string? LastName { get; set; } public string Gender { get; set; } = ""; public string Phone { get; set; } = ""; public string Email { get; set; } = ""; public DateTime? JoiningDate { get; set; } public bool IsActive { get; set; } }
